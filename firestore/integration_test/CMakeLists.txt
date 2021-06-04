@@ -61,7 +61,13 @@ set(FIREBASE_TEST_FRAMEWORK_SRCS
   src/firebase_test_framework.cc
 )
 
+set(FIRESTORE_TEST_FRAMEWORK_SRCS
+  src/firestore_integration_test.h
+  src/firestore_integration_test.cc
+)
+
 set(FIREBASE_INTEGRATION_TEST_SRCS
+  src/firestore_test.cc
   src/integration_test.cc
 )
 
@@ -136,6 +142,7 @@ if(ANDROID)
     ${FIREBASE_INTEGRATION_TEST_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_ANDROID_SRCS}
+    ${FIRESTORE_TEST_FRAMEWORK_SRCS}
   )
 
   target_include_directories(${integration_test_target_name} PRIVATE
@@ -180,6 +187,7 @@ else()
     ${FIREBASE_APP_FRAMEWORK_DESKTOP_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_SRCS}
     ${FIREBASE_INTEGRATION_TEST_SRCS}
+    ${FIRESTORE_TEST_FRAMEWORK_SRCS}
   )
 
   if(APPLE)
