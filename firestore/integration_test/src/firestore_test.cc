@@ -1,8 +1,11 @@
 #include "firestore_integration_test.h"
 
-namespace firebase {
-namespace firestore {
+namespace firebase_testapp_automated {
 namespace {
+
+using ::firebase::firestore::CollectionReference;
+using ::firebase::firestore::DocumentReference;
+using ::firebase::firestore::Firestore;
 
 /* TODO(TestMigration): uncomment this test
 TEST_F(FirestoreIntegrationTest, GetInstance) {
@@ -35,7 +38,7 @@ TEST_F(FirestoreIntegrationTest, GetInstance) {
 
 // Sanity test for stubs.
 TEST_F(FirestoreIntegrationTest, TestCanCreateCollectionAndDocumentReferences) {
-  Firestore* db = TestFirestore();
+  std::shared_ptr<Firestore> db = TestFirestore();
   CollectionReference c = db->Collection("a/b/c").Document("d").Parent();
   DocumentReference d = db->Document("a/b").Collection("c/d/e").Parent();
 
@@ -1529,5 +1532,4 @@ TEST_F(FirestoreAndroidIntegrationTest,
 */
 
 }  // namespace
-}  // namespace firestore
-}  // namespace firebase
+}  // namespace firebase_testapp_automated
