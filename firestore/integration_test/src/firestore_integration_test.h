@@ -14,7 +14,11 @@ using firebase_test_framework::FirebaseTest;
 using ::firebase::App;
 using ::firebase::kDefaultAppName;
 using ::firebase::auth::Auth;
+using ::firebase::firestore::CollectionReference;
+using ::firebase::firestore::DocumentReference;
+using ::firebase::firestore::DocumentSnapshot;
 using ::firebase::firestore::Firestore;
+using ::firebase::firestore::MapFieldValue;
 
 // Converts a Firestore error code to a human-friendly name. The `error_code`
 // argument is expected to be an element from the firebase::firestore::Error
@@ -30,6 +34,8 @@ class FirestoreIntegrationTest : public FirebaseTest {
  protected:
   App* app();
   Firestore* TestFirestore(const std::string& app_name = kDefaultAppName);
+  CollectionReference Collection(const std::string& name_prefix);
+  DocumentSnapshot ReadDocument(const DocumentReference& reference);
 
  private:
   bool default_firestore_created_ = false;

@@ -2,6 +2,7 @@
 
 #include "app_framework.h"
 #include "firebase/auth.h"
+#include "util/autoid.h"
 #include "util/future_test_util.h"
 
 // The TO_STRING macro is useful for command line defined strings as the quotes
@@ -101,6 +102,9 @@ App* FirestoreIntegrationTest::app() {
 }
 
 Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& app_name) {
+  const std::string scoped_trace_name = std::string("TestFirestore(") + app_name + ")";
+  SCOPED_TRACE(scoped_trace_name.c_str());
+
   if (app_name != kDefaultAppName) {
     // TODO(support non-default app_name)
     ADD_FAILURE() << std::string("non-default app name not supported yet: ") + app_name;
@@ -172,4 +176,20 @@ Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& app_name) 
   return firestore_;
 }
 
-}  // namespace firebase_testapp_automatedfirebase
+CollectionReference FirestoreIntegrationTest::Collection(const std::string& name_prefix) {
+  const std::string scoped_trace_name = std::string("Collection(") + name_prefix + ")";
+  SCOPED_TRACE(scoped_trace_name.c_str());
+  return TestFirestore()->Collection(name_prefix + "_" + CreateAutoIdForTesting());
+}
+
+DocumentSnapshot FirestoreIntegrationTest::ReadDocument(const DocumentReference& reference) {
+  const std::string scoped_trace_name = std::string("ReadDocument(") + reference.ToString() + ")";
+  SCOPED_TRACE(scoped_trace_name.c_str());
+  Future<DocumentSnapshot> future = reference.Get();
+  if (!WaitForCompletion(future, "ReadDocument")) {
+    return {};
+  }
+  return *future.result();
+}
+
+}  // namespace firebase_testapp_automated

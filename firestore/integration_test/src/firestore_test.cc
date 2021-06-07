@@ -12,6 +12,7 @@ using ::firebase::auth::Auth;
 using ::firebase::firestore::CollectionReference;
 using ::firebase::firestore::DocumentReference;
 using ::firebase::firestore::Firestore;
+using ::testing::ContainerEq;
 
 TEST_F(FirestoreIntegrationTest, GetInstance) {
   // Create App.
@@ -55,7 +56,6 @@ TEST_F(FirestoreIntegrationTest, TestCanCreateCollectionAndDocumentReferences) {
   // If any of these assert, the test will fail.
 }
 
-/*
 #if defined(FIRESTORE_STUB_BUILD)
 
 TEST_F(FirestoreIntegrationTest, TestStubsReturnFailedFutures) {
@@ -82,6 +82,7 @@ TEST_F(FirestoreIntegrationTest, TestCanReadNonExistentDocuments) {
   EXPECT_THAT(snap.GetData(), ContainerEq(MapFieldValue()));
 }
 
+/*
 TEST_F(FirestoreIntegrationTest, TestCanUpdateAnExistingDocument) {
   DocumentReference document = Collection("rooms").Document("eros");
   Await(document.Set(MapFieldValue{
@@ -1531,9 +1532,9 @@ TEST_F(FirestoreAndroidIntegrationTest,
   DisownFirestore(db);  // Avoid double-deletion of the `db`.
 }
 #endif  // defined(__ANDROID__)
+*/
 
 #endif  // defined(FIRESTORE_STUB_BUILD)
-*/
 
 }  // namespace
 }  // namespace firebase_testapp_automated
