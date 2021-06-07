@@ -2,6 +2,7 @@
 
 #include "app_framework.h"
 #include "firebase/auth.h"
+#include "util/future_test_util.h"
 
 // The TO_STRING macro is useful for command line defined strings as the quotes
 // get stripped.
@@ -15,14 +16,52 @@
 #define FIREBASE_CONFIG_STRING ""
 #endif  // FIREBASE_CONFIG
 
-using ::firebase::App;
+using ::firebase::firestore::Error;
 using ::firebase::InitResult;
 using ::firebase::ModuleInitializer;
-using ::firebase::auth::Auth;
-using ::firebase::firestore::Firestore;
-using ::firebase::kDefaultAppName;
 
 namespace firebase_testapp_automated {
+
+std::string ToFirestoreErrorCodeName(int error_code) {
+  switch (error_code) {
+    case Error::kErrorOk:
+      return "kErrorOk";
+    case Error::kErrorCancelled:
+      return "kErrorCancelled";
+    case Error::kErrorUnknown:
+      return "kErrorUnknown";
+    case Error::kErrorInvalidArgument:
+      return "kErrorInvalidArgument";
+    case Error::kErrorDeadlineExceeded:
+      return "kErrorDeadlineExceeded";
+    case Error::kErrorNotFound:
+      return "kErrorNotFound";
+    case Error::kErrorAlreadyExists:
+      return "kErrorAlreadyExists";
+    case Error::kErrorPermissionDenied:
+      return "kErrorPermissionDenied";
+    case Error::kErrorResourceExhausted:
+      return "kErrorResourceExhausted";
+    case Error::kErrorFailedPrecondition:
+      return "kErrorFailedPrecondition";
+    case Error::kErrorAborted:
+      return "kErrorAborted";
+    case Error::kErrorOutOfRange:
+      return "kErrorOutOfRange";
+    case Error::kErrorUnimplemented:
+      return "kErrorUnimplemented";
+    case Error::kErrorInternal:
+      return "kErrorInternal";
+    case Error::kErrorUnavailable:
+      return "kErrorUnavailable";
+    case Error::kErrorDataLoss:
+      return "kErrorDataLoss";
+    case Error::kErrorUnauthenticated:
+      return "kErrorUnauthenticated";
+    default:
+      return "[invalid error code]";
+  }
+}
 
 void FirestoreIntegrationTest::SetUpTestSuite() {
   // Look for google-services.json and change the current working directory to
@@ -30,15 +69,20 @@ void FirestoreIntegrationTest::SetUpTestSuite() {
   FindFirebaseConfig(FIREBASE_CONFIG_STRING);
 }
 
-std::shared_ptr<Firestore> FirestoreIntegrationTest::TestFirestore(const std::string& app_name) {
-  if (app_name != kDefaultAppName) {
-    // TODO(support non-default app_name)
-    ADD_FAILURE() << std::string("non-default app name not supported yet: ") + app_name;
-    abort();
-  } else if (default_firestore_created_) {
-    // TODO(support caching the Firestore instance)
-    ADD_FAILURE() << "TestFirestore() has already been invoked once";
-    abort();
+void FirestoreIntegrationTest::TearDown() {
+  if (firestore_) {
+    EXPECT_THAT(firestore_->Terminate(), FutureSucceeds());
+    EXPECT_THAT(firestore_->ClearPersistence(), FutureSucceeds());
+  }
+
+  delete firestore_;
+  delete auth_;
+  delete app_;
+}
+
+App* FirestoreIntegrationTest::app() {
+  if (app_ != nullptr) {
+    return app_;
   }
 
   #if defined(__ANDROID__)
@@ -52,11 +96,35 @@ std::shared_ptr<Firestore> FirestoreIntegrationTest::TestFirestore(const std::st
     abort();
   }
 
-  Auth* auth = nullptr;
+  app_ = app;
+  return app;
+}
+
+Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& app_name) {
+  if (app_name != kDefaultAppName) {
+    // TODO(support non-default app_name)
+    ADD_FAILURE() << std::string("non-default app name not supported yet: ") + app_name;
+    abort();
+  } else if (default_firestore_created_) {
+    // TODO(support caching the Firestore instance)
+    ADD_FAILURE() << "TestFirestore() has already been invoked once";
+    abort();
+  }
+
+  if (firestore_ != nullptr) {
+    return firestore_;
+  }
+
+  App* app = nullptr;
   {
+    SCOPED_TRACE("CreateApp");
+    app = this->app();
+  }
+
+  if (auth_ == nullptr) {
     SCOPED_TRACE("InitializeAuth");
     ModuleInitializer initializer;
-    auto initialize_auth_future = initializer.Initialize(app, &auth, [](App* app, void* target) {
+    auto initialize_auth_future = initializer.Initialize(app, &auth_, [](App* app, void* target) {
       InitResult result;
       *reinterpret_cast<Auth**>(target) = Auth::GetAuth(app, &result);
       return result;
@@ -67,25 +135,24 @@ std::shared_ptr<Firestore> FirestoreIntegrationTest::TestFirestore(const std::st
     }
   }
 
-  if (auth == nullptr) {
+  if (auth_ == nullptr) {
     ADD_FAILURE() << "Auth::GetAuth() returned nullptr";
     abort();
   }
 
-  if (auth->current_user() == nullptr) {
+  if (auth_->current_user() == nullptr) {
     SCOPED_TRACE("SignInAnonymously");
-    auto sign_in_future = auth->SignInAnonymously();
+    auto sign_in_future = auth_->SignInAnonymously();
     WaitForCompletion(sign_in_future, "SignInAnonymously");
     if (sign_in_future.error() != 0) {
       abort();
     }
   }
 
-  Firestore* firestore = nullptr;
-  {
+  if (firestore_ == nullptr) {
     SCOPED_TRACE("InitializeFirestore");
     ModuleInitializer initializer;
-    auto initialize_firestore_future = initializer.Initialize(app, &firestore, [](App* app, void* target) {
+    auto initialize_firestore_future = initializer.Initialize(app, &firestore_, [](App* app, void* target) {
       InitResult result;
       *reinterpret_cast<Firestore**>(target) = Firestore::GetInstance(app, &result);
       return result;
@@ -96,8 +163,13 @@ std::shared_ptr<Firestore> FirestoreIntegrationTest::TestFirestore(const std::st
     }
   }
 
+  if (firestore_ == nullptr) {
+    ADD_FAILURE() << "Firestore::GetInstance() returned nullptr";
+    abort();
+  }
+
   default_firestore_created_ = true;
-  return std::shared_ptr<Firestore>(firestore);
+  return firestore_;
 }
 
 }  // namespace firebase_testapp_automatedfirebase

@@ -1,13 +1,18 @@
 #include "firestore_integration_test.h"
 
+#include "firebase/auth.h"
+
 namespace firebase_testapp_automated {
 namespace {
 
+using ::firebase::App;
+using ::firebase::InitResult;
+using ::firebase::kInitResultSuccess;
+using ::firebase::auth::Auth;
 using ::firebase::firestore::CollectionReference;
 using ::firebase::firestore::DocumentReference;
 using ::firebase::firestore::Firestore;
 
-/* TODO(TestMigration): uncomment this test
 TEST_F(FirestoreIntegrationTest, GetInstance) {
   // Create App.
   App* app = this->app();
@@ -34,11 +39,10 @@ TEST_F(FirestoreIntegrationTest, GetInstance) {
   // TODO(mcg): Figure out why App's CleanupNotifier doesn't handle Auth.
   delete auth;
 }
-*/
 
 // Sanity test for stubs.
 TEST_F(FirestoreIntegrationTest, TestCanCreateCollectionAndDocumentReferences) {
-  std::shared_ptr<Firestore> db = TestFirestore();
+  Firestore* db = TestFirestore();
   CollectionReference c = db->Collection("a/b/c").Document("d").Parent();
   DocumentReference d = db->Document("a/b").Collection("c/d/e").Parent();
 

@@ -64,6 +64,8 @@ set(FIREBASE_TEST_FRAMEWORK_SRCS
 set(FIRESTORE_TEST_FRAMEWORK_SRCS
   src/firestore_integration_test.h
   src/firestore_integration_test.cc
+  src/util/future_test_util.h
+  src/util/future_test_util.cc
 )
 
 set(FIREBASE_INTEGRATION_TEST_SRCS
