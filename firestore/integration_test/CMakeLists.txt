@@ -57,12 +57,24 @@ set(FIREBASE_APP_FRAMEWORK_SRCS
 )
 
 set(FIREBASE_TEST_FRAMEWORK_SRCS
-  src/firebase_test_framework.h
   src/firebase_test_framework.cc
+  src/firebase_test_framework.h
+  src/util/assert.h
+  src/util/event_accumulator.h
+  src/util/future_test_util.cc
+  src/util/future_test_util.h
+  src/util/autoid.cc
+  src/util/autoid.h
+)
+
+set(FIRESTORE_TEST_FRAMEWORK_SRCS
+  src/firestore_integration_test.cc
+  src/firestore_integration_test.h
 )
 
 set(FIREBASE_INTEGRATION_TEST_SRCS
   src/integration_test.cc
+  src/firestore_test.cc
 )
 
 # The include directory for the testapp.
@@ -135,6 +147,7 @@ if(ANDROID)
     ${FIREBASE_APP_FRAMEWORK_ANDROID_SRCS}
     ${FIREBASE_INTEGRATION_TEST_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_SRCS}
+    ${FIRESTORE_TEST_FRAMEWORK_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_ANDROID_SRCS}
   )
 
@@ -179,6 +192,7 @@ else()
     ${FIREBASE_APP_FRAMEWORK_SRCS}
     ${FIREBASE_APP_FRAMEWORK_DESKTOP_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_SRCS}
+    ${FIRESTORE_TEST_FRAMEWORK_SRCS}
     ${FIREBASE_INTEGRATION_TEST_SRCS}
   )
 
