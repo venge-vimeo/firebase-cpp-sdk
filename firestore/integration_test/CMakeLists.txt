@@ -77,8 +77,38 @@ set(FIREBASE_INTEGRATION_TEST_SRCS
   src/firestore_test.cc
 )
 
+if(ANDROID)
+  # Firestore's integration test requires absl on Android, so download it now.
+  set(ABSEIL_CPP_ROOT ${CMAKE_CURRENT_LIST_DIR}/external/abseil-cpp/src/abseil-cpp)
+  if (NOT EXISTS ${ABSEIL_CPP_ROOT}/absl)
+    configure_file(abseil-cpp.cmake
+      ${CMAKE_CURRENT_LIST_DIR}/external/abseil-cpp/CMakeLists.txt COPYONLY)
+    execute_process(COMMAND ${CMAKE_COMMAND} .
+      -G ${CMAKE_GENERATOR}
+      -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+      -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+      RESULT_VARIABLE result
+      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external/abseil-cpp )
+    if(result)
+      message(FATAL_ERROR "CMake step for abseil-cpp failed: ${result}")
+    endif()
+    execute_process(COMMAND ${CMAKE_COMMAND} --build .
+      RESULT_VARIABLE result
+      WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/external/abseil-cpp )
+    if(result)
+      message(FATAL_ERROR "Build step for abseil-cpp failed: ${result}")
+    endif()
+  endif()
+  add_subdirectory(external/abseil-cpp)
+else()
+  set(ABSEIL_CPP_ROOT
+      ${PROJECT_BINARY_DIR}/bin/external/src/firestore-build/external/src/abseil-cpp)
+endif()
+
 # The include directory for the testapp.
 include_directories(src)
+# Additional public headers for absl.
+include_directories(${ABSEIL_CPP_ROOT})
 
 # Integration test uses some features that require C++ 11, such as lambdas.
 set (CMAKE_CXX_STANDARD 11)

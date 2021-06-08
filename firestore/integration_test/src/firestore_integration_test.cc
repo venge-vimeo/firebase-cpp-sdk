@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "absl/strings/ascii.h"
 #include "app_framework.h"
 #include "util/autoid.h"
 
