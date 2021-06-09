@@ -25,7 +25,8 @@
 #define FIRESTORE_TESTING_EXPAND_STRINGIFY(X) FIRESTORE_TESTING_EXPAND_STRINGIFY_(X)
 
 #define FIRESTORE_TESTING_ASSERT_MESSAGE_PREFIX \
-  __FILE__ "(" FIRESTORE_TESTING_EXPAND_STRINGIFY(__LINE__) "): "
+  __FILE__ "(" FIRESTORE_TESTING_EXPAND_STRINGIFY(__LINE__) "): " \
+  "FIRESTORE TESTING ASSERTION FAILED: "
 
 // Assert condition is true, if it's false log an assert with the specified
 // expression as a string.

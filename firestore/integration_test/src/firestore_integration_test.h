@@ -6,14 +6,15 @@
 #include <map>
 #include <mutex>
 #include <string>
-#include <unordered_map>
 #include <vector>
 #include <utility>
 
 #include "app_framework.h"
+#include "firebase_test_framework.h"
 #include "firebase/firestore.h"
 #include "gtest/gtest.h"
 #include "util/assert.h"
+#include "util/firestore_instance_factory.h"
 
 namespace firebase {
 namespace firestore {
@@ -24,14 +25,14 @@ using ::app_framework::LogError;
 using ::app_framework::LogInfo;
 using ::app_framework::LogWarning;
 using ::app_framework::ProcessEvents;
+using ::firebase_test_framework::FirebaseTest;
+using ::firebase::firestore::testing::FirestoreInstanceFactory;
 
 // The interval between checks for future completion.
 const int kCheckIntervalMillis = 100;
 
 // The timeout of waiting for a Future or a listener.
 const int kTimeOutMillis = 15000;
-
-void InitializeFirestore(Firestore* instance);
 
 // Converts a Firestore error code to a human-friendly name. The `error_code`
 // argument is expected to be an element from the firebase::firestore::Error
@@ -166,7 +167,7 @@ class TestEventListener : public EventListener<T> {
 
 // Base class for Firestore integration tests.
 // Note it keeps a cache of created Firestore instances, and is thread-unsafe.
-class FirestoreIntegrationTest : public ::testing::Test {
+class FirestoreIntegrationTest : public FirebaseTest {
   friend class TransactionTester;
 
  public:
@@ -176,6 +177,15 @@ class FirestoreIntegrationTest : public ::testing::Test {
 
   FirestoreIntegrationTest& operator=(const FirestoreIntegrationTest&) = delete;
   FirestoreIntegrationTest& operator=(FirestoreIntegrationTest&&) = delete;
+
+  static void SetUpTestSuite();
+
+ private:
+  // Hide some members from the superclass that we don't want tests to access
+  // because we manage these things ourselves.
+  using FirebaseTest::InitializeApp;
+  using FirebaseTest::TerminateApp;
+  using FirebaseTest::app_;
 
  protected:
   App* app() {
@@ -332,35 +342,7 @@ class FirestoreIntegrationTest : public ::testing::Test {
  private:
   template <typename T>
   friend class EventAccumulator;
-
-  class FirestoreInfo {
-   public:
-    FirestoreInfo() = default;
-    FirestoreInfo(const std::string& name, std::unique_ptr<Firestore>&& firestore)
-        : name_(name), firestore_(std::move(firestore)) {
-    }
-
-    const std::string& name() const {
-      return name_;
-    }
-    Firestore* firestore() const {
-      return firestore_.get();
-    }
-    void ReleaseFirestore() {
-      firestore_.release();
-    }
-
-   private:
-    std::string name_;
-    std::unique_ptr<Firestore> firestore_;
-  };
-
-  // The Firestore and App instance caches.
-  // Note that `firestores_` is intentionally ordered *after* `apps_` so that
-  // the Firestore pointers will be deleted before the App pointers when this
-  // object is destructed.
-  mutable std::unordered_map<App*, std::unique_ptr<App>> apps_;
-  mutable std::unordered_map<Firestore*, FirestoreInfo> firestores_;
+  mutable FirestoreInstanceFactory firestore_instance_factory_;
 };
 
 }  // namespace testing

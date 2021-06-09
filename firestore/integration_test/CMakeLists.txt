@@ -61,6 +61,8 @@ set(FIREBASE_TEST_FRAMEWORK_SRCS
   src/firebase_test_framework.h
   src/util/assert.h
   src/util/event_accumulator.h
+  src/util/firestore_instance_factory.cc
+  src/util/firestore_instance_factory.h
   src/util/future_test_util.cc
   src/util/future_test_util.h
   src/util/autoid.cc

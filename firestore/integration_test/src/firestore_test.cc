@@ -1486,7 +1486,7 @@ TEST_F(FirestoreIntegrationTest, DomainObjectsReferToSameFirestoreInstance) {
 
 TEST_F(FirestoreIntegrationTest, AuthWorks) {
   // This app instance is managed by the text fixture.
-  App* app = GetApp();
+  App* app = this->app();
   EXPECT_NE(app, nullptr);
 
   InitResult init_result;

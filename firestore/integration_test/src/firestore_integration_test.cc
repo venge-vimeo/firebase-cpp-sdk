@@ -8,6 +8,18 @@
 #include "app_framework.h"
 #include "util/autoid.h"
 
+// The TO_STRING macro is useful for command line defined strings as the quotes
+// get stripped.
+#define TO_STRING_EXPAND(X) #X
+#define TO_STRING(X) TO_STRING_EXPAND(X)
+
+// Path to the Firebase config file to load.
+#ifdef FIREBASE_CONFIG
+#define FIREBASE_CONFIG_STRING TO_STRING(FIREBASE_CONFIG)
+#else
+#define FIREBASE_CONFIG_STRING ""
+#endif  // FIREBASE_CONFIG
+
 namespace firebase {
 namespace firestore {
 namespace testing {
@@ -107,59 +119,28 @@ FirestoreIntegrationTest::FirestoreIntegrationTest() {
   TestFirestore();
 }
 
-Firestore* FirestoreIntegrationTest::TestFirestore(
-    const std::string& name) const {
-  for (const auto& entry : firestores_) {
-    const FirestoreInfo& firestore_info = entry.second;
-    if (firestore_info.name() == name) {
-      return firestore_info.firestore();
-    }
-  }
+void FirestoreIntegrationTest::SetUpTestSuite() {
+  // Look for google-services.json and change the current working directory to
+  // the directory that contains it, if found.
+  FindFirebaseConfig(FIREBASE_CONFIG_STRING);
+}
 
-  App* app = GetApp(name.c_str());
-  if (apps_.find(app) == apps_.end()) {
-    apps_[app] = std::unique_ptr<App>(app);
-  }
-
-  Firestore* db = new Firestore(CreateTestFirestoreInternal(app));
-  firestores_[db] = FirestoreInfo(name, std::unique_ptr<Firestore>(db));
-
+Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& name) const {
+  Firestore* db = firestore_instance_factory_.GetFirestore(name);
   LocateEmulator(db);
-  InitializeFirestore(db);
   return db;
 }
 
 void FirestoreIntegrationTest::DeleteFirestore(Firestore* firestore) {
-  auto found = firestores_.find(firestore);
-  FIRESTORE_TESTING_ASSERT_MESSAGE(found != firestores_.end(), "The given Firestore was not found.");
-  firestores_.erase(found);
+  firestore_instance_factory_.Delete(firestore);
 }
 
 void FirestoreIntegrationTest::DisownFirestore(Firestore* firestore) {
-  auto found = firestores_.find(firestore);
-  FIRESTORE_TESTING_ASSERT_MESSAGE(found != firestores_.end(), "The given Firestore was not found.");
-  found->second.ReleaseFirestore();
-  firestores_.erase(found);
+  firestore_instance_factory_.Disown(firestore);
 }
 
 void FirestoreIntegrationTest::DeleteApp(App* app) {
-  auto found = apps_.find(app);
-  FIRESTORE_TESTING_ASSERT_MESSAGE(found != apps_.end(), "The given App was not found.");
-  // Remove the Firestore instances from our internal list that are owned by the
-  // given App. Deleting the App also deletes the Firestore instances created
-  // via that App; therefore, removing our references to those Firestore
-  // instances avoids double-deletion and also avoids returning deleted
-  // Firestore instances from TestFirestore().
-  auto firestores_iterator = firestores_.begin();
-  while (firestores_iterator != firestores_.end()) {
-    if (firestores_iterator->first->app() == app) {
-      firestores_iterator = firestores_.erase(firestores_iterator);
-    } else {
-      ++firestores_iterator;
-    }
-  }
-
-  apps_.erase(found);
+  firestore_instance_factory_.Delete(app);
 }
 
 CollectionReference FirestoreIntegrationTest::Collection() const {
