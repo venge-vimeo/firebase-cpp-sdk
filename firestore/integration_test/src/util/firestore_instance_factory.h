@@ -39,18 +39,14 @@ class FirestoreInstanceFactory {
   App* GetApp(const std::string& name);
   Firestore* GetFirestore(const std::string& name);
   void Delete(Firestore* firestore);
-  void Delete(App* firestore);
+  void Delete(App* app);
   void Disown(Firestore* firestore);
-
-  struct FirestoreDelete : public std::default_delete<Firestore> {
-    void operator()(Firestore*);
-  };
 
  private:
   std::mutex mutex_;
   std::unique_ptr<App> app_;
   std::unique_ptr<::firebase::auth::Auth> auth_;
-  std::unique_ptr<Firestore, FirestoreDelete> firestore_;
+  std::unique_ptr<Firestore> firestore_;
 
 };
 

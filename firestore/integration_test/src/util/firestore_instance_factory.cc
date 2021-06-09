@@ -61,7 +61,7 @@ void SignIn(Auth* auth) {
   FIRESTORE_TESTING_ASSERT_MESSAGE(sign_in_future.error() == 0, "Auth::SignInAnonymously() failed");
 }
 
-std::unique_ptr<Firestore, FirestoreInstanceFactory::FirestoreDelete> CreateFirestore(App* app) {
+std::unique_ptr<Firestore> CreateFirestore(App* app) {
   Firestore* firestore = nullptr;
   ModuleInitializer initializer;
   auto initialize_firestore_future = initializer.Initialize(app, &firestore, [](App* app, void* target) {
@@ -73,7 +73,7 @@ std::unique_ptr<Firestore, FirestoreInstanceFactory::FirestoreDelete> CreateFire
   FirebaseTest::WaitForCompletion(initialize_firestore_future, "Firestore::GetInstance()");
   FIRESTORE_TESTING_ASSERT_MESSAGE(initialize_firestore_future.error() == 0, "Firestore::GetInstance() failed");
   FIRESTORE_TESTING_ASSERT_MESSAGE(firestore, "Firestore::GetInstance() returned null");
-  return std::unique_ptr<Firestore, FirestoreInstanceFactory::FirestoreDelete>(firestore);
+  return std::unique_ptr<Firestore>(firestore);
 }
 
 }  // namespace
@@ -88,9 +88,9 @@ App* FirestoreInstanceFactory::GetApp(const std::string& name) {
   
   std::lock_guard<std::mutex> lock(mutex_);
 
-  FIRESTORE_TESTING_ASSERT_MESSAGE(! app_,
-    "GetApp() was invoked a subsequent time, "
-    "but is only supported to be invoked at most once");
+  if (app_) {
+    return app_.get();
+  }
 
   {
     SCOPED_TRACE("InitializeApp");
@@ -109,24 +109,21 @@ Firestore* FirestoreInstanceFactory::GetFirestore(const std::string& name) {
     "GetFirestore() was invoked with an unsupported name: %s "
     "(it is required to be %s)",
     name.c_str(), kDefaultAppName);
-  
+
+  // NOTE: Make sure to *not* hold the lock on `mutex_` when calling GetApp()
+  // because it will deadlock since it is non-reentrant.
+  App* app = this->GetApp(name);
+
   std::lock_guard<std::mutex> lock(mutex_);
 
-  FIRESTORE_TESTING_ASSERT_MESSAGE(! firestore_,
-    "GetFirestore() was invoked a subsequent time, "
-    "but is only supported to be invoked at most once");
-
-  {
-    SCOPED_TRACE("InitializeApp");
-    FIRESTORE_TESTING_ASSERT(!app_);
-    app_ = CreateApp();
-    FIRESTORE_TESTING_ASSERT(app_);
+  if (firestore_) {
+    return firestore_.get();
   }
 
   {
     SCOPED_TRACE("InitializeAuth");
     FIRESTORE_TESTING_ASSERT(!auth_);
-    auth_ = CreateAuth(app_.get());
+    auth_ = CreateAuth(app);
     FIRESTORE_TESTING_ASSERT(auth_);
   }
 
@@ -138,7 +135,7 @@ Firestore* FirestoreInstanceFactory::GetFirestore(const std::string& name) {
   {
     SCOPED_TRACE("InitializeFirestore");
     FIRESTORE_TESTING_ASSERT(!firestore_);
-    firestore_ = CreateFirestore(app_.get());
+    firestore_ = CreateFirestore(app);
     FIRESTORE_TESTING_ASSERT(firestore_);
   }
 
@@ -146,22 +143,23 @@ Firestore* FirestoreInstanceFactory::GetFirestore(const std::string& name) {
 }
 
 void FirestoreInstanceFactory::Delete(Firestore* firestore) {
-  FIRESTORE_TESTING_ASSERT_MESSAGE(false, "This method is not supported");
+  std::lock_guard<std::mutex> lock(mutex_);
+  FIRESTORE_TESTING_ASSERT_MESSAGE(firestore == firestore_.get(), "The given Firestore instance is not known");
+  firestore_.reset();
 }
 
-void FirestoreInstanceFactory::Delete(App* firestore) {
-  FIRESTORE_TESTING_ASSERT_MESSAGE(false, "This method is not supported");
+void FirestoreInstanceFactory::Delete(App* app) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  FIRESTORE_TESTING_ASSERT_MESSAGE(app == app_.get(), "The given App instance is not known");
+  firestore_.reset();
+  auth_.reset();
+  app_.reset();
 }
 
 void FirestoreInstanceFactory::Disown(Firestore* firestore) {
+  std::lock_guard<std::mutex> lock(mutex_);
   FIRESTORE_TESTING_ASSERT_MESSAGE(false, "This method is not supported");
 }
-
-void FirestoreInstanceFactory::FirestoreDelete::operator()(Firestore* firestore) {
-  EXPECT_THAT(firestore->Terminate(), FutureSucceeds());
-  EXPECT_THAT(firestore->ClearPersistence(), FutureSucceeds());
-  std::default_delete<Firestore>::operator()(firestore);
-};
 
 }  // namespace testing
 }  // namespace firestore
