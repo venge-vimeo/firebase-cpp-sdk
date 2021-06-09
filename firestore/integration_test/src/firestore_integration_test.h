@@ -171,7 +171,9 @@ class FirestoreIntegrationTest : public FirebaseTest {
   friend class TransactionTester;
 
  public:
-  FirestoreIntegrationTest();
+  FirestoreIntegrationTest() = default;
+
+  // Delete the copy and move constructors and assignment operators.
   FirestoreIntegrationTest(const FirestoreIntegrationTest&) = delete;
   FirestoreIntegrationTest(FirestoreIntegrationTest&&) = delete;
 
@@ -188,9 +190,7 @@ class FirestoreIntegrationTest : public FirebaseTest {
   using FirebaseTest::app_;
 
  protected:
-  App* app() {
-    return TestFirestore()->app();
-  }
+  App* app();
 
   // Returns a Firestore instance for an app with the given name.
   // If this method is invoked again with the same `name`, then the same pointer

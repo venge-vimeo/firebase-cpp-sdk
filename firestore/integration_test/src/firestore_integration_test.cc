@@ -114,15 +114,14 @@ int WaitFor(const FutureBase& future) {
   return cycles;
 }
 
-FirestoreIntegrationTest::FirestoreIntegrationTest() {
-  // Allocate the default Firestore eagerly.
-  TestFirestore();
-}
-
 void FirestoreIntegrationTest::SetUpTestSuite() {
   // Look for google-services.json and change the current working directory to
   // the directory that contains it, if found.
   FindFirebaseConfig(FIREBASE_CONFIG_STRING);
+}
+
+App* FirestoreIntegrationTest::app() {
+  return firestore_instance_factory_.GetApp(kDefaultAppName);
 }
 
 Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& name) const {

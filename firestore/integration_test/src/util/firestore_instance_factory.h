@@ -32,21 +32,25 @@ class FirestoreInstanceFactory {
  public:
   FirestoreInstanceFactory() = default;
 
-  ~FirestoreInstanceFactory();
-
+  // Delete the copy and move constructors and assignment operators.
   FirestoreInstanceFactory(const FirestoreInstanceFactory&) = delete;
   FirestoreInstanceFactory& operator=(const FirestoreInstanceFactory&) = delete;
 
+  App* GetApp(const std::string& name);
   Firestore* GetFirestore(const std::string& name);
   void Delete(Firestore* firestore);
   void Delete(App* firestore);
   void Disown(Firestore* firestore);
 
+  struct FirestoreDelete : public std::default_delete<Firestore> {
+    void operator()(Firestore*);
+  };
+
  private:
   std::mutex mutex_;
   std::unique_ptr<App> app_;
   std::unique_ptr<::firebase::auth::Auth> auth_;
-  std::unique_ptr<Firestore> firestore_;
+  std::unique_ptr<Firestore, FirestoreDelete> firestore_;
 
 };
 
