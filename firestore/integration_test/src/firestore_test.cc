@@ -1287,7 +1287,8 @@ TEST_F(FirestoreIntegrationTest, MaintainsPersistenceAfterRestarting) {
   auto path = doc.path();
   Await(doc.Set({{"foo", FieldValue::String("bar")}}));
   DeleteFirestore(db);
-  DeleteApp(app);
+  // TODO(dconeybe) Determine if deleting the app is strictly necessary
+  // DeleteApp(app);
 
   DocumentReference doc_2 = TestFirestore()->Document(path);
   auto snap = Await(doc_2.Get());
@@ -1405,7 +1406,8 @@ TEST_F(FirestoreIntegrationTest, CanClearPersistenceTestHarnessVerification) {
   const std::string path = document.path();
   WriteDocument(document, MapFieldValue{{"foo", FieldValue::Integer(42)}});
   DeleteFirestore(db);
-  DeleteApp(app);
+  // TODO(dconeybe) Determine if deleting the app is strictly necessary
+  // DeleteApp(app);
 
   Firestore* db_2 = TestFirestore(app_name);
   DocumentReference document_2 = db_2->Document(path);
@@ -1432,7 +1434,8 @@ TEST_F(FirestoreIntegrationTest, CanClearPersistenceAfterRestarting) {
   // are deleted, which emulates the way an end user would experience their
   // application being killed and later re-launched by the user.
   DeleteFirestore(db);
-  DeleteApp(app);
+  // TODO(dconeybe) Determine if deleting the app is strictly necessary
+  // DeleteApp(app);
 
   // We restart the app with the same name and options to check that the
   // previous instance's persistent storage is actually cleared after the
@@ -1460,7 +1463,8 @@ TEST_F(FirestoreIntegrationTest, CanClearPersistenceOnANewFirestoreInstance) {
   // are deleted, which emulates the way an end user would experience their
   // application being killed and later re-launched by the user.
   DeleteFirestore(db);
-  DeleteApp(app);
+  // TODO(dconeybe) Determine if deleting the app is strictly necessary
+  // DeleteApp(app);
 
   // We restart the app with the same name and options to check that the
   // previous instance's persistent storage is actually cleared after the

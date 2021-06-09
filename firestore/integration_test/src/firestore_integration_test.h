@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -26,7 +27,6 @@ using ::app_framework::LogInfo;
 using ::app_framework::LogWarning;
 using ::app_framework::ProcessEvents;
 using ::firebase_test_framework::FirebaseTest;
-using ::firebase::firestore::testing::FirestoreInstanceFactory;
 
 // The interval between checks for future completion.
 const int kCheckIntervalMillis = 100;
@@ -180,11 +180,13 @@ class FirestoreIntegrationTest : public FirebaseTest {
   FirestoreIntegrationTest& operator=(const FirestoreIntegrationTest&) = delete;
   FirestoreIntegrationTest& operator=(FirestoreIntegrationTest&&) = delete;
 
-  static void SetUpTestSuite();
+  void SetUp() override;
+  void TearDown() override;
 
  private:
   // Hide some members from the superclass that we don't want tests to access
   // because we manage these things ourselves.
+  using FirebaseTest::FindFirebaseConfig;
   using FirebaseTest::InitializeApp;
   using FirebaseTest::TerminateApp;
   using FirebaseTest::app_;
@@ -195,8 +197,7 @@ class FirestoreIntegrationTest : public FirebaseTest {
   // Returns a Firestore instance for an app with the given name.
   // If this method is invoked again with the same `name`, then the same pointer
   // will be returned. The only exception is if the `Firestore` was removed
-  // from the cache by a call to `DeleteFirestore()` or `DisownFirestore()`, or
-  // if `DeleteApp()` is called with the `App` of the returned `Firestore`.
+  // from the cache by a call to `DeleteFirestore()` or `DisownFirestore()`.
   Firestore* TestFirestore(const std::string& name = kDefaultAppName) const;
 
   // Deletes the given `Firestore` instance, which must have been returned by a
@@ -220,15 +221,6 @@ class FirestoreIntegrationTest : public FirebaseTest {
   // the cache, such as by a previous invocation of this method, then the
   // behavior of this method is undefined.
   void DisownFirestore(Firestore* firestore);
-
-  // Deletes the given `App` instance. The given `App` must have been the `App`
-  // associated with a `Firestore` instance returned by a previous invocation of
-  // `TestFirestore()`. Normally the `App` is deleted at the end of the test, so
-  // this method is only needed if the test requires the App to be deleted
-  // earlier than that. Any `Firestore` instances that were returned from
-  // `TestFirestore()` and were associated with the given `App` will be deleted
-  // as if with `DeleteFirestore()`.
-  void DeleteApp(App* app);
 
   // Return a reference to the collection with auto-generated id.
   CollectionReference Collection() const;
@@ -342,7 +334,8 @@ class FirestoreIntegrationTest : public FirebaseTest {
  private:
   template <typename T>
   friend class EventAccumulator;
-  mutable FirestoreInstanceFactory firestore_instance_factory_;
+
+  std::unique_ptr<FirestoreFactory> firestore_factory_;
 };
 
 }  // namespace testing

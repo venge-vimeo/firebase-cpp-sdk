@@ -65,6 +65,8 @@ set(FIREBASE_TEST_FRAMEWORK_SRCS
   src/util/firestore_instance_factory.h
   src/util/future_test_util.cc
   src/util/future_test_util.h
+  src/util/gtest_global_state.cc
+  src/util/gtest_global_state.h
   src/util/autoid.cc
   src/util/autoid.h
 )

@@ -28,26 +28,43 @@ namespace firebase {
 namespace firestore {
 namespace testing {
 
-class FirestoreInstanceFactory {
+class FirebaseAppFactory {
  public:
-  FirestoreInstanceFactory() = default;
+  FirebaseAppFactory() = default;
 
   // Delete the copy and move constructors and assignment operators.
-  FirestoreInstanceFactory(const FirestoreInstanceFactory&) = delete;
-  FirestoreInstanceFactory& operator=(const FirestoreInstanceFactory&) = delete;
+  FirebaseAppFactory(const FirebaseAppFactory&) = delete;
+  FirebaseAppFactory& operator=(const FirebaseAppFactory&) = delete;
 
-  App* GetApp(const std::string& name);
-  Firestore* GetFirestore(const std::string& name);
-  void Delete(Firestore* firestore);
-  void Delete(App* app);
-  void Disown(Firestore* firestore);
+  App* GetInstance(const std::string& name);
+  void SignIn(App* app);
 
  private:
   std::mutex mutex_;
   std::unique_ptr<App> app_;
   std::unique_ptr<::firebase::auth::Auth> auth_;
-  std::unique_ptr<Firestore> firestore_;
+};
 
+class FirestoreFactory {
+ public:
+  explicit FirestoreFactory(FirebaseAppFactory& app_factory);
+
+  // Delete the copy and move constructors and assignment operators.
+  FirestoreFactory(const FirestoreFactory&) = delete;
+  FirestoreFactory& operator=(const FirestoreFactory&) = delete;
+
+  Firestore* GetInstance(const std::string& name);
+  void Delete(Firestore* firestore);
+  void Disown(Firestore* firestore);
+  
+  FirebaseAppFactory& app_factory() {
+    return app_factory_;
+  }
+
+ private:
+  FirebaseAppFactory& app_factory_;
+  std::mutex mutex_;
+  std::unique_ptr<Firestore> firestore_;
 };
 
 }  // namespace testing

@@ -7,18 +7,7 @@
 #include "absl/strings/ascii.h"
 #include "app_framework.h"
 #include "util/autoid.h"
-
-// The TO_STRING macro is useful for command line defined strings as the quotes
-// get stripped.
-#define TO_STRING_EXPAND(X) #X
-#define TO_STRING(X) TO_STRING_EXPAND(X)
-
-// Path to the Firebase config file to load.
-#ifdef FIREBASE_CONFIG
-#define FIREBASE_CONFIG_STRING TO_STRING(FIREBASE_CONFIG)
-#else
-#define FIREBASE_CONFIG_STRING ""
-#endif  // FIREBASE_CONFIG
+#include "util/gtest_global_state.h"
 
 namespace firebase {
 namespace firestore {
@@ -114,32 +103,30 @@ int WaitFor(const FutureBase& future) {
   return cycles;
 }
 
-void FirestoreIntegrationTest::SetUpTestSuite() {
-  // Look for google-services.json and change the current working directory to
-  // the directory that contains it, if found.
-  FindFirebaseConfig(FIREBASE_CONFIG_STRING);
+void FirestoreIntegrationTest::SetUp() {
+  firestore_factory_ = Environment::CreateFirestoreFactory();
+}
+
+void FirestoreIntegrationTest::TearDown() {
+  firestore_factory_.reset();
 }
 
 App* FirestoreIntegrationTest::app() {
-  return firestore_instance_factory_.GetApp(kDefaultAppName);
+  return firestore_factory_->app_factory().GetInstance(kDefaultAppName);
 }
 
 Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& name) const {
-  Firestore* db = firestore_instance_factory_.GetFirestore(name);
+  Firestore* db = firestore_factory_->GetInstance(name);
   LocateEmulator(db);
   return db;
 }
 
 void FirestoreIntegrationTest::DeleteFirestore(Firestore* firestore) {
-  firestore_instance_factory_.Delete(firestore);
+  firestore_factory_->Delete(firestore);
 }
 
 void FirestoreIntegrationTest::DisownFirestore(Firestore* firestore) {
-  firestore_instance_factory_.Disown(firestore);
-}
-
-void FirestoreIntegrationTest::DeleteApp(App* app) {
-  firestore_instance_factory_.Delete(app);
+  firestore_factory_->Disown(firestore);
 }
 
 CollectionReference FirestoreIntegrationTest::Collection() const {
