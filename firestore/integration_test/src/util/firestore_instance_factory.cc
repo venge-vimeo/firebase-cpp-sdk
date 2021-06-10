@@ -111,6 +111,27 @@ void FirebaseAppFactory::SignIn(App* app) {
   }
 }
 
+void FirebaseAppFactory::SignOut() {
+  std::lock_guard<std::mutex> lock(mutex_);
+
+  // Do nothing if there is no user signed in.
+  if (! auth_ || auth_->current_user() == nullptr) {
+    return;
+  }
+
+  // We only handle anonymous logins; if a non-anonymous user is logged in then
+  // it must have been done by the test and the test should look after cleaning
+  // this up.
+  FIRESTORE_TESTING_ASSERT(auth_->current_user()->is_anonymous());
+
+  // Delete the anonymous user.
+  SCOPED_TRACE("DeleteAnonymousUser");
+  auto delete_user_future = auth_->current_user()->Delete();
+  FirebaseTest::WaitForCompletion(delete_user_future, "Auth::current_user()->Delete()");
+  FIRESTORE_TESTING_ASSERT_MESSAGE(delete_user_future.error() == 0, "Auth::current_user()->Delete() failed");
+  FIRESTORE_TESTING_ASSERT(auth_->current_user() == nullptr);
+}
+
 FirestoreFactory::FirestoreFactory(FirebaseAppFactory& app_factory) : app_factory_(app_factory) {
 }
 

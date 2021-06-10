@@ -38,6 +38,7 @@ class FirebaseAppFactory {
 
   App* GetInstance(const std::string& name);
   void SignIn(App* app);
+  void SignOut();
 
  private:
   std::mutex mutex_;
