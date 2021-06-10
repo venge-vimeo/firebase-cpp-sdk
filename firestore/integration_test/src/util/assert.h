@@ -28,6 +28,17 @@
   __FILE__ "(" FIRESTORE_TESTING_EXPAND_STRINGIFY(__LINE__) "): " \
   "FIRESTORE TESTING ASSERTION FAILED: "
 
+// Assert condition is true otherwise display the specified expression,
+// message and abort.
+#define FIRESTORE_TESTING_DIE_WITH_MESSAGE(...) \
+  do {                                          \
+    ::app_framework::LogError(                  \
+        FIRESTORE_TESTING_ASSERT_MESSAGE_PREFIX \
+        "Assertion Failed");                    \
+    ::app_framework::LogError(__VA_ARGS__);     \
+    std::abort();                               \
+  } while (false)
+
 // Assert condition is true, if it's false log an assert with the specified
 // expression as a string.
 #define FIRESTORE_TESTING_ASSERT_WITH_EXPRESSION(condition, expression) \

@@ -58,7 +58,7 @@ void Environment::TearDown() {
   std::unique_ptr<FirebaseAppFactory> factory;
   firebase_app_factory.swap(factory);
   FIRESTORE_TESTING_ASSERT(factory);
-  factory->SignOut();
+  factory->SignOutAllApps();
 }
 
 std::unique_ptr<FirestoreFactory> Environment::CreateFirestoreFactory() {

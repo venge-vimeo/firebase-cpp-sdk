@@ -133,7 +133,6 @@ TEST_F(FirestoreIntegrationTest, TestCanUpdateAnExistingDocument) {
 }
 
 TEST_F(FirestoreIntegrationTest, TestCanUpdateAnUnknownDocument) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
   DocumentReference writer_reference =
       TestFirestore("writer")->Collection("collection").Document();
   DocumentReference reader_reference = TestFirestore("reader")
@@ -837,8 +836,6 @@ TEST_F(FirestoreIntegrationTest, TestDocumentSnapshotEventsForAdd) {
 }
 
 TEST_F(FirestoreIntegrationTest, TestDocumentSnapshotEventsForChange) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
-
   CollectionReference collection =
       Collection(std::map<std::string, MapFieldValue>{
           {"doc", MapFieldValue{{"a", FieldValue::Double(1.0)}}}});
@@ -870,7 +867,6 @@ TEST_F(FirestoreIntegrationTest, TestDocumentSnapshotEventsForChange) {
 }
 
 TEST_F(FirestoreIntegrationTest, TestDocumentSnapshotEventsForDelete) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
   CollectionReference collection =
       Collection(std::map<std::string, MapFieldValue>{
           {"doc", MapFieldValue{{"a", FieldValue::Double(1.0)}}}});
@@ -933,8 +929,6 @@ TEST_F(FirestoreIntegrationTest, TestQuerySnapshotEventsForAdd) {
 }
 
 TEST_F(FirestoreIntegrationTest, TestQuerySnapshotEventsForChange) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
-
   CollectionReference collection =
       Collection(std::map<std::string, MapFieldValue>{
           {"doc", MapFieldValue{{"a", FieldValue::Double(1.0)}}}});
@@ -966,8 +960,6 @@ TEST_F(FirestoreIntegrationTest, TestQuerySnapshotEventsForChange) {
 }
 
 TEST_F(FirestoreIntegrationTest, TestQuerySnapshotEventsForDelete) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
-
   CollectionReference collection =
       Collection(std::map<std::string, MapFieldValue>{
           {"doc", MapFieldValue{{"a", FieldValue::Double(1.0)}}}});
@@ -1047,7 +1039,6 @@ TEST_F(FirestoreIntegrationTest, TestQueryExposesFirestore) {
 }
 
 TEST_F(FirestoreIntegrationTest, TestDocumentReferenceEquality) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
   Firestore* db = TestFirestore();
   DocumentReference document = db->Document("foo/bar");
   EXPECT_EQ(document, db->Document("foo/bar"));
@@ -1297,7 +1288,6 @@ TEST_F(FirestoreIntegrationTest, MaintainsPersistenceAfterRestarting) {
 }
 
 TEST_F(FirestoreIntegrationTest, RestartFirestoreLeadsToNewInstance) {
-  GTEST_SKIP(); // TODO(dconeybe) re-enable this test once TestFirestore() supports non-default app.
   // Get App and Settings objects to use in the test.
   Firestore* db_template = TestFirestore("restart_firestore_new_instance_test");
   App* app = db_template->app();

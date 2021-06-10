@@ -20,6 +20,7 @@
 #include <memory>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 
 #include "firebase/auth.h"
 #include "firebase/firestore.h"
@@ -38,12 +39,17 @@ class FirebaseAppFactory {
 
   App* GetInstance(const std::string& name);
   void SignIn(App* app);
-  void SignOut();
+  void SignOut(App* app);
+  void SignOutAllApps();
 
  private:
+  App* GetInstanceLocked(const std::string& name);
+  void SignOutLocked(App* app);
+  void AssertKnownApp(App*);
+
   std::mutex mutex_;
-  std::unique_ptr<App> app_;
-  std::unique_ptr<::firebase::auth::Auth> auth_;
+  std::unordered_map<std::string, std::unique_ptr<App>> apps_;
+  std::unordered_map<App*, std::unique_ptr<::firebase::auth::Auth>> auths_;
 };
 
 class FirestoreFactory {
@@ -65,7 +71,7 @@ class FirestoreFactory {
  private:
   FirebaseAppFactory& app_factory_;
   std::mutex mutex_;
-  std::unique_ptr<Firestore> firestore_;
+  std::unordered_map<std::string, std::unique_ptr<Firestore>> firestores_;
 };
 
 }  // namespace testing
