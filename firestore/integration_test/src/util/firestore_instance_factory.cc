@@ -96,25 +96,18 @@ void FirebaseAppFactory::SignIn(App* app) {
 
   FIRESTORE_TESTING_ASSERT_MESSAGE(app == app_.get(), "An unexpected Firebase app instance was specified");
 
-  if (auth_) {
-    // Do nothing if we are already signed in.
-    return;
-  }
-
-  {
+  if (! auth_) {
     SCOPED_TRACE("InitializeAuth");
     FIRESTORE_TESTING_ASSERT(!auth_);
     auth_ = CreateAuth(app_.get());
     FIRESTORE_TESTING_ASSERT(auth_);
   }
 
-  {
+  if (auth_->current_user() == nullptr) {
     SCOPED_TRACE("SignIn");
-    if (auth_->current_user() == nullptr) {
-      auto sign_in_future = auth_->SignInAnonymously();
-      FirebaseTest::WaitForCompletion(sign_in_future, "Auth::SignInAnonymously()");
-      FIRESTORE_TESTING_ASSERT_MESSAGE(sign_in_future.error() == 0, "Auth::SignInAnonymously() failed");
-    }
+    auto sign_in_future = auth_->SignInAnonymously();
+    FirebaseTest::WaitForCompletion(sign_in_future, "Auth::SignInAnonymously()");
+    FIRESTORE_TESTING_ASSERT_MESSAGE(sign_in_future.error() == 0, "Auth::SignInAnonymously() failed");
   }
 }
 
