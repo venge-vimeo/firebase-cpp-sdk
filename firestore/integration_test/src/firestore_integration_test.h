@@ -198,7 +198,11 @@ class FirestoreIntegrationTest : public FirebaseTest {
   // If this method is invoked again with the same `name`, then the same pointer
   // will be returned. The only exception is if the `Firestore` was removed
   // from the cache by a call to `DeleteFirestore()` or `DisownFirestore()`.
-  Firestore* TestFirestore(const std::string& name = kDefaultAppName) const;
+  Firestore* TestFirestore(const std::string& name) const;
+
+  // Same as `TestFirestore(const std::string&)` but returns the instance for
+  // the default app.
+  Firestore* TestFirestore() const;
 
   // Deletes the given `Firestore` instance, which must have been returned by a
   // previous invocation of `TestFirestore()`, and removes it from the cache of

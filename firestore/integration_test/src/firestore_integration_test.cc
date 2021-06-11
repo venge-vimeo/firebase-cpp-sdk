@@ -104,17 +104,24 @@ int WaitFor(const FutureBase& future) {
 }
 
 void FirestoreIntegrationTest::SetUp() {
+  FirebaseTest::SetUp();
   firestore_factory_ = Environment::CreateFirestoreFactory();
 }
 
 void FirestoreIntegrationTest::TearDown() {
   firestore_factory_.reset();
+  FirebaseTest::TearDown();
 }
 
 App* FirestoreIntegrationTest::app() {
-  return firestore_factory_->app_factory().GetInstance(kDefaultAppName);
+  return firestore_factory_->app_factory().GetDefaultInstance();
 }
 
+Firestore* FirestoreIntegrationTest::TestFirestore() const {
+  Firestore* db = firestore_factory_->GetDefaultInstance();
+  LocateEmulator(db);
+  return db;
+}
 Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& name) const {
   Firestore* db = firestore_factory_->GetInstance(name);
   LocateEmulator(db);

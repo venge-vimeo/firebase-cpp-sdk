@@ -37,6 +37,7 @@ class FirebaseAppFactory {
   FirebaseAppFactory(const FirebaseAppFactory&) = delete;
   FirebaseAppFactory& operator=(const FirebaseAppFactory&) = delete;
 
+  App* GetDefaultInstance();
   App* GetInstance(const std::string& name);
   void SignIn(App* app);
   void SignOut(App* app);
@@ -60,6 +61,7 @@ class FirestoreFactory {
   FirestoreFactory(const FirestoreFactory&) = delete;
   FirestoreFactory& operator=(const FirestoreFactory&) = delete;
 
+  Firestore* GetDefaultInstance();
   Firestore* GetInstance(const std::string& name);
   void Delete(Firestore* firestore);
   void Disown(Firestore* firestore);
