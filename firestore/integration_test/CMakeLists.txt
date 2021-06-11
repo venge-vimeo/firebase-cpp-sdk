@@ -152,6 +152,16 @@ if(ANDROID)
     src/android/android_firebase_test_framework.cc
   )
 
+  # Source files used for the Android build.
+  set(FIRESTORE_TEST_FRAMEWORK_ANDROID_SRCS
+    src/android/firestore_integration_test_android.cc
+    src/android/firestore_integration_test_android.h
+  )
+
+  set(FIREBASE_INTEGRATION_TEST_ANDROID_SRCS
+    src/android/firestore_integration_test_android_test.cc
+  )
+
   # Build native_app_glue as a static lib
   add_library(native_app_glue STATIC
     ${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c)
@@ -180,9 +190,11 @@ if(ANDROID)
     ${FIREBASE_APP_FRAMEWORK_SRCS}
     ${FIREBASE_APP_FRAMEWORK_ANDROID_SRCS}
     ${FIREBASE_INTEGRATION_TEST_SRCS}
+    ${FIREBASE_INTEGRATION_TEST_ANDROID_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_SRCS}
     ${FIRESTORE_TEST_FRAMEWORK_SRCS}
     ${FIREBASE_TEST_FRAMEWORK_ANDROID_SRCS}
+    ${FIRESTORE_TEST_FRAMEWORK_ANDROID_SRCS}
   )
 
   target_include_directories(${integration_test_target_name} PRIVATE

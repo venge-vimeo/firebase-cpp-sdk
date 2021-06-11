@@ -34,8 +34,30 @@ namespace testing {
 
 namespace {
 
+#if defined(__ANDROID__)
+
+App* PlatformCreateDefaultApp() {
+  return App::Create(app_framework::GetJniEnv(), app_framework::GetActivity());
+}
+
+App* PlatformCreateAppWithName(const AppOptions& options, const char* name) {
+  return App::Create(options, name, app_framework::GetJniEnv(), app_framework::GetActivity());
+}
+
+#else  // defined(__ANDROID__)
+
+App* PlatformCreateDefaultApp() {
+  return App::Create();
+}
+
+App* PlatformCreateAppWithName(const AppOptions& options, const char* name) {
+  return App::Create(options, name);
+}
+
+#endif  // defined(__ANDROID__)
+
 std::unique_ptr<App> CreateDefaultApp() {
-  App* app = App::Create();
+  App* app = PlatformCreateDefaultApp();
   FIRESTORE_TESTING_ASSERT_MESSAGE(app, "App::Create() returned null");
   LogDebug("CreateDefaultApp() Created App: %p", app);
   return std::unique_ptr<App>(app);
@@ -43,7 +65,7 @@ std::unique_ptr<App> CreateDefaultApp() {
 
 std::unique_ptr<App> CreateAppWithName(const std::string& name, const AppOptions& options) {
   FIRESTORE_TESTING_ASSERT(name != kDefaultAppName);
-  App* app = App::Create(options, name.c_str());
+  App* app = PlatformCreateAppWithName(options, name.c_str());
   FIRESTORE_TESTING_ASSERT_MESSAGE(app, "App::Create(%s) returned null", name.c_str());
   LogDebug("CreateAppWithName(%s) Created App: %p", name.c_str(), app);
   return std::unique_ptr<App>(app);
