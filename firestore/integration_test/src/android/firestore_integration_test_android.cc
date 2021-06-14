@@ -1,89 +1,78 @@
 #include "android/firestore_integration_test_android.h"
 
-#include "android/cancellation_token_source.h"
-#include "android/task_completion_source.h"
-#include "firestore/src/jni/env.h"
-#include "firestore/src/jni/string.h"
+#include "app_framework.h"
+
+using ::app_framework::GetJniEnv;
 
 namespace firebase {
 namespace firestore {
-
-std::string ToDebugString(const jni::Object& object) {
-  if (!object) {
-    return "null";
-  }
-  jni::Env env;
-  jni::ExceptionClearGuard block(env);
-  return object.ToString(env);
-}
-
-namespace jni {
-
-void PrintTo(const Object& object, std::ostream* os) {
-  *os << ToDebugString(object);
-}
-
-}  // namespace jni
-
-using jni::Constructor;
-using jni::Env;
-using jni::ExceptionClearGuard;
-using jni::Local;
-using jni::String;
-using jni::Task;
-using jni::Throwable;
+namespace testing {
 
 namespace {
 
-constexpr char kExceptionClassName[] = "java/lang/Exception";
-Constructor<Throwable> kExceptionConstructor("(Ljava/lang/String;)V");
+jlong GetThreadId(JNIEnv* env, jobject thread) {
+  jclass thread_class = env->FindClass("java/lang/Thread");
+  jmethodID get_id_method = env->GetMethodID(thread_class, "getId", "()J");
+  jlong thread_id = env->CallLongMethod(thread, get_id_method);
+  env->DeleteLocalRef(thread_class);
+  return thread_id;
+}
+
+jobject GetMainLooper(JNIEnv* env) {
+  jclass looper_class = env->FindClass("android/os/Looper");
+  jmethodID get_main_looper_method = env->GetStaticMethodID(looper_class, "getMainLooper", "()Landroid/os/Looper;");
+  jobject main_looper = env->CallStaticObjectMethod(looper_class, get_main_looper_method);
+  env->DeleteLocalRef(looper_class);
+  return main_looper;
+}
+
+jobject GetLooperThread(JNIEnv* env, jobject looper) {
+  jclass looper_class = env->FindClass("android/os/Looper");
+  jmethodID get_thread_method = env->GetMethodID(looper_class, "getThread", "()Ljava/lang/Thread;");
+  jobject looper_thread = env->CallObjectMethod(looper, get_thread_method);
+  env->DeleteLocalRef(looper_class);
+  return looper_thread;
+}
+
+jobject GetCurrentThread(JNIEnv* env) {
+  jclass thread_class = env->FindClass("java/lang/Thread");
+  jmethodID current_thread_method = env->GetStaticMethodID(thread_class, "currentThread", "()Ljava/lang/Thread;");
+  jobject current_thread = env->CallStaticObjectMethod(thread_class, current_thread_method);
+  env->DeleteLocalRef(thread_class);
+  return current_thread;
+}
+
+jobject GetMainThread(JNIEnv* env) {
+  jobject main_looper = GetMainLooper(env);
+  jobject main_thread = GetLooperThread(env, main_looper);
+  env->DeleteLocalRef(main_looper);
+  return main_thread;
+}
 
 }  // namespace
 
-FirestoreAndroidIntegrationTest::FirestoreAndroidIntegrationTest()
-    : loader_(app()) {}
-
-void FirestoreAndroidIntegrationTest::SetUp() {
-  FirestoreIntegrationTest::SetUp();
-  CancellationTokenSource::Initialize(loader_);
-  TaskCompletionSource::Initialize(loader_);
-  loader_.LoadClass(kExceptionClassName, kExceptionConstructor);
-  ASSERT_TRUE(loader_.ok());
+jlong GetCurrentJavaThreadId() {
+  JNIEnv* env = GetJniEnv();
+  jobject current_thread = GetCurrentThread(env);
+  jlong current_thread_id = GetThreadId(env, current_thread);
+  env->DeleteLocalRef(current_thread);
+  return current_thread_id;
 }
 
-void FirestoreAndroidIntegrationTest::TearDown() {
-  // Fail the test if there is a pending Java exception. Clear the pending
-  // exception as well so that it doesn't bleed into the next test.
-  Env env;
-  Local<Throwable> pending_exception = env.ClearExceptionOccurred();
-  EXPECT_FALSE(pending_exception)
-      << "Test completed with a pending Java exception: "
-      << pending_exception.ToString(env);
-  env.ExceptionClear();
-  FirestoreIntegrationTest::TearDown();
+jlong GetMainJavaThreadId() {
+  JNIEnv* env = GetJniEnv();
+  jobject main_thread = GetMainThread(env);
+  jlong current_thread_id = GetThreadId(env, main_thread);
+  env->DeleteLocalRef(main_thread);
+  return current_thread_id;
 }
 
-Local<Throwable> FirestoreAndroidIntegrationTest::CreateException(
-    Env& env, const std::string& message) {
-  ExceptionClearGuard block(env);
-  Local<String> java_message = env.NewStringUtf(message);
-  return env.New(kExceptionConstructor, java_message);
+void RunOnMainThread(std::function<void()> function) {
+  TestFirestore();  // Initialize the JNI environment.
+  JNIEnv* env = GetJniEnv();
+  jclass jni_runnable_class = env->FindClass("com/google/firebase/firestore/internal/cpp/JniRunnable");
 }
 
-void FirestoreAndroidIntegrationTest::Await(Env& env, const Task& task) {
-  int cycles = kTimeOutMillis / kCheckIntervalMillis;
-  while (env.ok() && !task.IsComplete(env)) {
-    if (ProcessEvents(kCheckIntervalMillis)) {
-      std::cout << "WARNING: app receives an event requesting exit."
-                << std::endl;
-      break;
-    }
-    --cycles;
-  }
-  if (env.ok()) {
-    EXPECT_GT(cycles, 0) << "Waiting for Task timed out.";
-  }
-}
-
+}  // namespace testing
 }  // namespace firestore
 }  // namespace firebase

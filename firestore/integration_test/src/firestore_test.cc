@@ -2,30 +2,22 @@
 #include "firebase/firestore.h"
 
 #include <algorithm>
+#include <future>
 #include <memory>
 #include <mutex>
-
-#if !defined(__ANDROID__)
-#include <future>  // NOLINT(build/c++11)
-#endif
 #include <stdexcept>
 
-#if defined(__ANDROID__)
-#include "android/firestore_integration_test_android.h"
-#include "firestore/src/android/exception_android.h"
-#include "firestore/src/android/jni_runnable_android.h"
-#include "firestore/src/jni/env.h"
-#include "firestore/src/jni/ownership.h"
-#include "firestore/src/jni/task.h"
-#endif  // defined(__ANDROID__)
-
+#include "firebase_test_framework.h"
 #include "firestore_integration_test.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "util/autoid.h"
 #include "util/event_accumulator.h"
 #include "util/future_test_util.h"
-#include "firebase_test_framework.h"
+
+#if defined(__ANDROID__)
+#include "android/firestore_integration_test_android.h"
+#endif  // defined(__ANDROID__)
 
 // These test cases are in sync with native iOS client SDK test
 //   Firestore/Example/Tests/Integration/API/FIRDatabaseTests.mm
@@ -1555,14 +1547,8 @@ TEST_F(FirestoreIntegrationTest, FirestoreCanBeDeletedFromTransaction) {
 #if defined(__ANDROID__)
 TEST_F(FirestoreAndroidIntegrationTest,
        CanDeleteFirestoreInstanceOnJavaMainThread) {
-  jni::Env env;
   Firestore* db = TestFirestore();
-  auto runnable = MakeJniRunnable(env, [db] { delete db; });
-
-  jni::Local<jni::Task> task = runnable.RunOnMainThread(env);
-
-  Await(env, task);
-  EXPECT_TRUE(task.IsSuccessful(env));
+  RunOnMainThread([db] { delete db; });
   DisownFirestore(db);  // Avoid double-deletion of the `db`.
 }
 #endif  // defined(__ANDROID__)
