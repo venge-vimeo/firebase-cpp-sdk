@@ -59,16 +59,18 @@ set(FIREBASE_APP_FRAMEWORK_SRCS
 set(FIREBASE_TEST_FRAMEWORK_SRCS
   src/firebase_test_framework.cc
   src/firebase_test_framework.h
+  src/firebase_testing_global_environment.cc
+  src/firebase_testing_global_environment.h
   src/util/assert.h
+  src/util/autoid.cc
+  src/util/autoid.h
   src/util/event_accumulator.h
   src/util/firestore_instance_factory.cc
   src/util/firestore_instance_factory.h
   src/util/future_test_util.cc
   src/util/future_test_util.h
-  src/util/gtest_global_state.cc
-  src/util/gtest_global_state.h
-  src/util/autoid.cc
-  src/util/autoid.h
+  src/util/global_state.h
+  src/util/global_state.cc
 )
 
 set(FIRESTORE_TEST_FRAMEWORK_SRCS
@@ -283,3 +285,7 @@ set(firebase_libs firebase_firestore firebase_auth firebase_app)
 set(gtest_libs gtest gmock)
 target_link_libraries(${integration_test_target_name} ${firebase_libs}
   ${gtest_libs} ${ADDITIONAL_LIBS})
+
+# Tell the googletest framework to install our custom global "environment" object.
+target_compile_definitions(${integration_test_target_name} PRIVATE
+  -DFIREBASE_TESTING_INSTALL_GLOBAL_ENVIRONMENT)

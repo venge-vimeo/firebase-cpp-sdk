@@ -7,7 +7,7 @@
 #include "absl/strings/ascii.h"
 #include "app_framework.h"
 #include "util/autoid.h"
-#include "util/gtest_global_state.h"
+#include "util/global_state.h"
 
 namespace firebase {
 namespace firestore {
@@ -105,7 +105,7 @@ int WaitFor(const FutureBase& future) {
 
 void FirestoreIntegrationTest::SetUp() {
   FirebaseTest::SetUp();
-  firestore_factory_ = Environment::CreateFirestoreFactory();
+  firestore_factory_ = FirestoreTestingGlobalState::GetInstance().CreateFirestoreFactory();
 }
 
 void FirestoreIntegrationTest::TearDown() {

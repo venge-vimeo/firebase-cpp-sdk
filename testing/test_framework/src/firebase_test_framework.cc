@@ -14,6 +14,10 @@
 
 #include "firebase_test_framework.h"  // NOLINT
 
+#ifdef FIREBASE_TESTING_INSTALL_GLOBAL_ENVIRONMENT
+#include "firebase_testing_global_environment.h"
+#endif
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -372,7 +376,11 @@ extern "C" int common_main(int argc, char* argv[]) {
   ::testing::TestEventListeners& listeners =
       ::testing::UnitTest::GetInstance()->listeners();
   listeners.Append(new firebase_test_framework::LogTestEventListener());
-  int result = RUN_ALL_TESTS();
 
+#ifdef FIREBASE_TESTING_INSTALL_GLOBAL_ENVIRONMENT
+  ::testing::AddGlobalTestEnvironment(new FirebaseTestingGlobalEnvironment);
+#endif
+
+  int result = RUN_ALL_TESTS();
   return result;
 }

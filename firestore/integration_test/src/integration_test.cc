@@ -43,7 +43,7 @@
 #include "firebase/firestore.h"
 #include "firebase_test_framework.h"  // NOLINT
 #include "util/firestore_instance_factory.h"
-#include "util/gtest_global_state.h"
+#include "util/global_state.h"
 
 // The TO_STRING macro is useful for command line defined strings as the quotes
 // get stripped.
@@ -62,8 +62,8 @@ namespace firebase_testapp_automated {
 using app_framework::GetCurrentTimeInMicroseconds;
 using app_framework::LogDebug;
 using app_framework::ProcessEvents;
-using firebase::firestore::testing::Environment;
 using firebase::firestore::testing::FirestoreFactory;
+using firebase::firestore::testing::FirestoreTestingGlobalState;
 using firebase_test_framework::FirebaseTest;
 using testing::ElementsAre;
 using testing::Pair;
@@ -118,7 +118,7 @@ FirebaseFirestoreBasicTest::~FirebaseFirestoreBasicTest() {
 
 void FirebaseFirestoreBasicTest::SetUp() {
   FirebaseTest::SetUp();
-  firestore_factory_ = Environment::CreateFirestoreFactory();
+  firestore_factory_ = FirestoreTestingGlobalState::GetInstance().CreateFirestoreFactory();
   firestore_ = firestore_factory_->GetDefaultInstance();
 }
 

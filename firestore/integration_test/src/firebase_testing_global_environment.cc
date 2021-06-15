@@ -13,12 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "util/gtest_global_state.h"
+#include "firebase_testing_global_environment.h"
 
 #include "firebase_test_framework.h"
-#include "util/assert.h"
-
-#include <memory>
 
 // The TO_STRING macro is useful for command line defined strings as the quotes
 // get stripped.
@@ -32,41 +29,21 @@
 #define FIREBASE_CONFIG_STRING ""
 #endif  // FIREBASE_CONFIG
 
-using ::firebase_test_framework::FirebaseTest;
+using ::firebase::firestore::testing::FirestoreTestingGlobalState;
 
-namespace firebase {
-namespace firestore {
-namespace testing {
+namespace firebase_test_framework {
 
-namespace {
-
-std::unique_ptr<FirebaseAppFactory> firebase_app_factory;
-
-}  // namespace
-
-void Environment::SetUp() {
+void FirebaseTestingGlobalEnvironment::SetUp() {
   // Look for google-services.json and change the current working directory to
   // the directory that contains it, if found.
   FirebaseTest::FindFirebaseConfig(FIREBASE_CONFIG_STRING);
 
-  auto factory = std::unique_ptr<FirebaseAppFactory>(new FirebaseAppFactory);
-  firebase_app_factory.swap(factory);
-  FIRESTORE_TESTING_ASSERT(!factory);
+  global_state_ = new FirestoreTestingGlobalState;
 }
 
-void Environment::TearDown() {
-  std::unique_ptr<FirebaseAppFactory> factory;
-  firebase_app_factory.swap(factory);
-  FIRESTORE_TESTING_ASSERT(factory);
-  factory->SignOutAllApps();
+void FirebaseTestingGlobalEnvironment::TearDown() {
+  delete global_state_;
+  global_state_ = nullptr;
 }
 
-std::unique_ptr<FirestoreFactory> Environment::CreateFirestoreFactory() {
-  auto* factory = firebase_app_factory.get();
-  FIRESTORE_TESTING_ASSERT(factory);
-  return std::unique_ptr<FirestoreFactory>(new FirestoreFactory(*factory));
-}
-
-}  // namespace testing
-}  // namespace firestore
-}  // namespace firebase
+}  // firebase_test_framework firebase

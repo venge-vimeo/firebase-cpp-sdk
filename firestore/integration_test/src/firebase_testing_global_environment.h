@@ -17,24 +17,20 @@
 #ifndef FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_GTEST_GLOBAL_STATE_H_
 #define FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_GTEST_GLOBAL_STATE_H_
 
-#include <memory>
-
-#include "util/firestore_instance_factory.h"
+#include "util/global_state.h"
 #include "gtest/gtest.h"
 
-namespace firebase {
-namespace firestore {
-namespace testing {
+namespace firebase_test_framework {
 
-class Environment : public ::testing::Environment {
+class FirebaseTestingGlobalEnvironment : public ::testing::Environment {
  public:
+  FirebaseTestingGlobalEnvironment() = default;
   void SetUp() override;
   void TearDown() override;
-  static std::unique_ptr<FirestoreFactory> CreateFirestoreFactory();
+ private:
+  ::firebase::firestore::testing::FirestoreTestingGlobalState* global_state_ = nullptr;
 };
 
-}  // namespace testing
-}  // namespace firestore
-}  // namespace firebase
+}  // namespace firebase_test_framework
 
 #endif  // FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_GTEST_GLOBAL_STATE_H_
