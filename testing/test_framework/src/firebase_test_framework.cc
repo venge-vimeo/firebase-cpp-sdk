@@ -378,7 +378,7 @@ extern "C" int common_main(int argc, char* argv[]) {
   listeners.Append(new firebase_test_framework::LogTestEventListener());
 
 #ifdef FIREBASE_TESTING_INSTALL_GLOBAL_ENVIRONMENT
-  ::testing::AddGlobalTestEnvironment(new FirebaseTestingGlobalEnvironment);
+  ::testing::AddGlobalTestEnvironment(new ::firebase_test_framework::FirebaseTestingGlobalEnvironment);
 #endif
 
   int result = RUN_ALL_TESTS();
