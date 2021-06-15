@@ -23,7 +23,6 @@
 #include "util/assert.h"
 #include "util/future_test_util.h"
 
-using ::app_framework::LogDebug;
 using ::firebase::auth::Auth;
 using ::firebase::auth::User;
 using ::firebase_test_framework::FirebaseTest;
@@ -59,7 +58,6 @@ App* PlatformCreateAppWithName(const AppOptions& options, const char* name) {
 std::unique_ptr<App> CreateDefaultApp() {
   App* app = PlatformCreateDefaultApp();
   FIRESTORE_TESTING_ASSERT_MESSAGE(app, "App::Create() returned null");
-  LogDebug("CreateDefaultApp() Created App: %p", app);
   return std::unique_ptr<App>(app);
 }
 
@@ -67,7 +65,6 @@ std::unique_ptr<App> CreateAppWithName(const std::string& name, const AppOptions
   FIRESTORE_TESTING_ASSERT(name != kDefaultAppName);
   App* app = PlatformCreateAppWithName(options, name.c_str());
   FIRESTORE_TESTING_ASSERT_MESSAGE(app, "App::Create(%s) returned null", name.c_str());
-  LogDebug("CreateAppWithName(%s) Created App: %p", name.c_str(), app);
   return std::unique_ptr<App>(app);
 }
 
@@ -83,7 +80,6 @@ std::unique_ptr<Auth> CreateAuth(App* app) {
   FirebaseTest::WaitForCompletion(initialize_auth_future, "Auth::GetAuth()");
   FIRESTORE_TESTING_ASSERT_MESSAGE(initialize_auth_future.error() == 0, "Auth::GetAuth() failed");
   FIRESTORE_TESTING_ASSERT_MESSAGE(auth, "Auth::GetAuth() returned null");
-  LogDebug("CreateAuth() Created Auth: %p (app=%p)", auth, app);
   return std::unique_ptr<Auth>(auth);
 }
 
@@ -99,7 +95,6 @@ std::unique_ptr<Firestore> CreateFirestore(App* app) {
   FirebaseTest::WaitForCompletion(initialize_firestore_future, "Firestore::GetInstance()");
   FIRESTORE_TESTING_ASSERT_MESSAGE(initialize_firestore_future.error() == 0, "Firestore::GetInstance() failed");
   FIRESTORE_TESTING_ASSERT_MESSAGE(firestore, "Firestore::GetInstance() returned null");
-  LogDebug("CreateFirestore() Created Firestore: %p (app=%p)", firestore, app);
   return std::unique_ptr<Firestore>(firestore);
 }
 
@@ -171,7 +166,6 @@ void FirebaseAppFactory::SignIn(App* app) {
     FirebaseTest::WaitForCompletion(sign_in_future, "Auth::SignInAnonymously()");
     FIRESTORE_TESTING_ASSERT_MESSAGE(sign_in_future.error() == 0, "Auth::SignInAnonymously() failed");
     FIRESTORE_TESTING_ASSERT(auth->current_user() != nullptr);
-    LogDebug("SignIn() Anonymous user signed in: %s (app=%p auth=%p)", auth->current_user()->uid().c_str(), app, auth);
   }
 }
 
@@ -204,7 +198,6 @@ void FirebaseAppFactory::SignOutLocked(App* app) {
   FIRESTORE_TESTING_ASSERT(auth->current_user()->is_anonymous());
 
   // Delete the anonymous user.
-  LogDebug("SignOut() Signing out anonymous user: %s (app=%p auth=%p)", auth->current_user()->uid().c_str(), app, auth);
   SCOPED_TRACE("DeleteAnonymousUser");
   auto delete_user_future = auth->current_user()->Delete();
   FirebaseTest::WaitForCompletion(delete_user_future, "Auth::current_user()->Delete()");
@@ -284,14 +277,26 @@ void FirestoreFactory::Delete(Firestore* firestore) {
 
   // Remove the `Firestore` instance from the cache, which will in turn delete
   // it since its `unique_ptr` will look after the deletion.
-  LogDebug("FirestoreFactory::Delete(firestore=%p)", firestore);
   firestores_.erase(it);
 }
 
 void FirestoreFactory::Disown(Firestore* firestore) {
   std::lock_guard<std::mutex> lock(mutex_);
-  FIRESTORE_TESTING_ASSERT_MESSAGE(false, "This method is not supported");
-  LogDebug("FirestoreFactory::Disown(firestore=%p)", firestore);
+
+  // Find the given `Firestore` instance in the cache.
+  auto it = firestores_.begin();
+  while (it != firestores_.end()) {
+    if (it->second.get() == firestore) {
+      break;
+    }
+  }
+
+  FIRESTORE_TESTING_ASSERT_MESSAGE(it != firestores_.end(), "The given Firestore instance was not found");
+
+  // Remove the `Firestore` instance from the cache, which will in turn delete
+  // it since its `unique_ptr` will look after the deletion.
+  it->second.release();
+  firestores_.erase(it);
 }
 
 }  // namespace testing

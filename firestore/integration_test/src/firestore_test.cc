@@ -16,7 +16,7 @@
 #include "util/future_test_util.h"
 
 #if defined(__ANDROID__)
-#include "android/firestore_integration_test_android.h"
+#include "android/util/testing_utils_android.h"
 #endif  // defined(__ANDROID__)
 
 // These test cases are in sync with native iOS client SDK test
@@ -1545,10 +1545,10 @@ TEST_F(FirestoreIntegrationTest, FirestoreCanBeDeletedFromTransaction) {
 #endif  // #if !defined(__ANDROID__)
 
 #if defined(__ANDROID__)
-TEST_F(FirestoreAndroidIntegrationTest,
-       CanDeleteFirestoreInstanceOnJavaMainThread) {
+TEST_F(FirestoreIntegrationTest, CanDeleteFirestoreInstanceOnJavaMainThread) {
   Firestore* db = TestFirestore();
-  RunOnMainThread([db] { delete db; });
+  AndroidTestUtils utils;
+  utils.RunOnMainThread([db] { delete db; });
   DisownFirestore(db);  // Avoid double-deletion of the `db`.
 }
 #endif  // defined(__ANDROID__)

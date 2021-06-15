@@ -154,12 +154,12 @@ if(ANDROID)
 
   # Source files used for the Android build.
   set(FIRESTORE_TEST_FRAMEWORK_ANDROID_SRCS
-    src/android/firestore_integration_test_android.cc
-    src/android/firestore_integration_test_android.h
+    src/android/util/testing_utils_android.cc
+    src/android/util/testing_utils_android.h
   )
 
   set(FIREBASE_INTEGRATION_TEST_ANDROID_SRCS
-    src/android/firestore_integration_test_android_test.cc
+    src/android/util/testing_utils_android_test.cc
   )
 
   # Build native_app_glue as a static lib
