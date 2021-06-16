@@ -79,6 +79,7 @@ set(FIRESTORE_TEST_FRAMEWORK_SRCS
 set(FIREBASE_INTEGRATION_TEST_SRCS
   src/integration_test.cc
   src/firestore_test.cc
+  src/document_change_test.cc
 )
 
 if(ANDROID)
