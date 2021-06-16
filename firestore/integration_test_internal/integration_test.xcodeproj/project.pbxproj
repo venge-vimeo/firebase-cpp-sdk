@@ -28,7 +28,6 @@
 		D6AAAD4B2606C22D0025C53B /* array_transform_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD322606C22D0025C53B /* array_transform_test.cc */; };
 		D6AAAD4C2606C22D0025C53B /* server_timestamp_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD332606C22D0025C53B /* server_timestamp_test.cc */; };
 		D6AAAD4D2606C22D0025C53B /* query_snapshot_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD342606C22D0025C53B /* query_snapshot_test.cc */; };
-		D6AAAD4E2606C22D0025C53B /* firestore_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD352606C22D0025C53B /* firestore_test.cc */; };
 		D6AAAD4F2606C22D0025C53B /* transaction_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD362606C22D0025C53B /* transaction_test.cc */; };
 		D6AAAD502606C22D0025C53B /* numeric_transforms_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD372606C22D0025C53B /* numeric_transforms_test.cc */; };
 		D6AAAD512606C22D0025C53B /* sanity_test.cc in Sources */ = {isa = PBXBuildFile; fileRef = D6AAAD382606C22D0025C53B /* sanity_test.cc */; };
@@ -75,7 +74,6 @@
 		D6AAAD322606C22D0025C53B /* array_transform_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = array_transform_test.cc; path = src/array_transform_test.cc; sourceTree = "<group>"; };
 		D6AAAD332606C22D0025C53B /* server_timestamp_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = server_timestamp_test.cc; path = src/server_timestamp_test.cc; sourceTree = "<group>"; };
 		D6AAAD342606C22D0025C53B /* query_snapshot_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = query_snapshot_test.cc; path = src/query_snapshot_test.cc; sourceTree = "<group>"; };
-		D6AAAD352606C22D0025C53B /* firestore_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = firestore_test.cc; path = src/firestore_test.cc; sourceTree = "<group>"; };
 		D6AAAD362606C22D0025C53B /* transaction_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = transaction_test.cc; path = src/transaction_test.cc; sourceTree = "<group>"; };
 		D6AAAD372606C22D0025C53B /* numeric_transforms_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = numeric_transforms_test.cc; path = src/numeric_transforms_test.cc; sourceTree = "<group>"; };
 		D6AAAD382606C22D0025C53B /* sanity_test.cc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = sanity_test.cc; path = src/sanity_test.cc; sourceTree = "<group>"; };
@@ -181,7 +179,6 @@
 				D6AAAD2C2606C22D0025C53B /* firebase_test_framework.h */,
 				D6AAAD412606C22D0025C53B /* firestore_integration_test.cc */,
 				D6AAAD3C2606C22D0025C53B /* firestore_integration_test.h */,
-				D6AAAD352606C22D0025C53B /* firestore_test.cc */,
 				D6AAAD3A2606C22D0025C53B /* includes_test.cc */,
 				D6AAAD3D2606C22D0025C53B /* listener_registration_test.cc */,
 				D6AAAD372606C22D0025C53B /* numeric_transforms_test.cc */,
@@ -296,7 +293,6 @@
 				D6ED33BE2606CD890058CBF9 /* integration_test_util.cc in Sources */,
 				D6C179EA22CB322900C2651A /* ios_firebase_test_framework.mm in Sources */,
 				D6AAAD4C2606C22D0025C53B /* server_timestamp_test.cc in Sources */,
-				D6AAAD4E2606C22D0025C53B /* firestore_test.cc in Sources */,
 				D6AAAD452606C22D0025C53B /* document_change_test.cc in Sources */,
 				D6AAAD472606C22D0025C53B /* document_snapshot_test.cc in Sources */,
 				D6C179E922CB322900C2651A /* ios_app_framework.mm in Sources */,
