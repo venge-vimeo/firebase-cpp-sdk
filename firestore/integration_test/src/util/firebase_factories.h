@@ -42,14 +42,16 @@ class FirebaseAppFactory {
 
   App* GetDefaultApp();
   App* GetApp(const std::string& name);
+  ::firebase::auth::Auth* GetAuth(App* app);
   void SignIn(App* app);
   void SignOut(App* app);
   void SignOutAllApps();
 
  private:
   App* GetAppLocked(const std::string& name);
+  ::firebase::auth::Auth* GetAuthLocked(App* app);
   void SignOutLocked(App* app);
-  void AssertKnownApp(App*);
+  void DieIfAppIsNotKnownLocked(App*);
 
   std::mutex mutex_;
   std::unordered_map<std::string, std::unique_ptr<App>> apps_;

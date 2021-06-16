@@ -36,10 +36,8 @@ using ::testing::ContainerEq;
 using ::testing::HasSubstr;
 
 TEST_F(FirestoreIntegrationTest, GetInstance) {
-  GTEST_SKIP();  // TODO(dconeybe) Tweak this test to not delete the auth
-  // Create App.
-  App* app = this->app();
-  EXPECT_NE(nullptr, app);
+  FirebaseAppFactory& app_factory = FirebaseAppFactory::GetInstance();
+  App* app = app_factory.GetApp(CreateAutoId());
 
   // Get an instance.
   InitResult result;
@@ -1482,27 +1480,11 @@ TEST_F(FirestoreIntegrationTest, DomainObjectsReferToSameFirestoreInstance) {
 }
 
 TEST_F(FirestoreIntegrationTest, AuthWorks) {
-  GTEST_SKIP();  // TODO(dconeybe) Tweak this test to not delete the auth
-  // This app instance is managed by the text fixture.
-  App* app = this->app();
-  EXPECT_NE(app, nullptr);
+  FirebaseAppFactory& app_factory = FirebaseAppFactory::GetInstance();
+  App* app = app_factory.GetApp(CreateAutoId());
+  Auth* auth = app_factory.GetAuth(app);
 
   InitResult init_result;
-  auto auth = std::unique_ptr<Auth>(Auth::GetAuth(app, &init_result));
-#if defined(__ANDROID__)
-  if (init_result != kInitResultSuccess) {
-    // On Android, it's possible for the Auth library built at head to be too
-    // new for the version of Play Services available in the Android emulator.
-    // In this case, Auth will fail to initialize. Meanwhile, there's no simple
-    // way to detect if the Android app is running in an emulator running on
-    // Forge. Consequently, just punt if Auth fails to initialize.
-    LogWarning("Skipped AuthWorks test: Auth missing or failed to initialize");
-    return;
-  }
-#else
-  ASSERT_EQ(init_result, kInitResultSuccess);
-#endif
-
   auto db = std::unique_ptr<Firestore>(Firestore::GetInstance(app, &init_result));
   EXPECT_EQ(init_result, kInitResultSuccess);
 

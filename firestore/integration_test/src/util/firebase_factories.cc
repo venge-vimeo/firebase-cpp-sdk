@@ -120,16 +120,18 @@ FirebaseAppFactory& FirebaseAppFactory::GetInstance() {
 }
 
 App* FirebaseAppFactory::GetDefaultApp() {
+  SCOPED_TRACE("FirebaseAppFactory::GetDefaultApp()");
   return GetApp(kDefaultAppName);
 }
 
 App* FirebaseAppFactory::GetApp(const std::string& name) {
+  SCOPED_TRACE("FirebaseAppFactory::GetApp()");
   std::lock_guard<std::mutex> lock(mutex_);
   return GetAppLocked(name);
 }
 
 App* FirebaseAppFactory::GetAppLocked(const std::string& name) {
-  SCOPED_TRACE("FirebaseAppFactory::GetAppLocked(" + name + ")");
+  SCOPED_TRACE("FirebaseAppFactory::GetAppLocked()");
 
   // Return the cached Firebase `App` instance if we have one.
   {
@@ -159,25 +161,37 @@ App* FirebaseAppFactory::GetAppLocked(const std::string& name) {
   return emplace_result.first->second.get();
 }
 
-void FirebaseAppFactory::SignIn(App* app) {
-  AssertKnownApp(app);
-  SCOPED_TRACE("FirebaseAppFactory::SignIn()");
-
+Auth* FirebaseAppFactory::GetAuth(App* app) {
+  SCOPED_TRACE("FirebaseAppFactory::GetAuth()");
   std::lock_guard<std::mutex> lock(mutex_);
+  DieIfAppIsNotKnownLocked(app);
+  return GetAuthLocked(app);
+}
 
-  Auth* auth = nullptr;
+Auth* FirebaseAppFactory::GetAuthLocked(App* app) {
+  SCOPED_TRACE("FirebaseAppFactory::GetAuthLocked()");
+
   {
     auto found = auths_.find(app);
     if (found != auths_.end()) {
-      auth = found->second.get();
-    } else {
-      SCOPED_TRACE("InitializeAuth");
-      auto created_auth = CreateAuth(app);
-      FIRESTORE_TESTING_ASSERT(created_auth);
-      auth = created_auth.get();
-      auths_.emplace(app, std::move(created_auth));
+      return found->second.get();
     }
   }
+
+  SCOPED_TRACE("InitializeAuth");
+  auto created_auth = CreateAuth(app);
+  FIRESTORE_TESTING_ASSERT(created_auth);
+  auto emplace_result = auths_.emplace(app, std::move(created_auth));
+  FIRESTORE_TESTING_ASSERT(emplace_result.second);
+  return emplace_result.first->second.get();
+}
+
+void FirebaseAppFactory::SignIn(App* app) {
+  SCOPED_TRACE("FirebaseAppFactory::SignIn()");
+  std::lock_guard<std::mutex> lock(mutex_);
+  DieIfAppIsNotKnownLocked(app);
+
+  Auth* auth = GetAuthLocked(app);
 
   if (auth->current_user() == nullptr) {
     SCOPED_TRACE("SignIn");
@@ -189,8 +203,9 @@ void FirebaseAppFactory::SignIn(App* app) {
 }
 
 void FirebaseAppFactory::SignOut(App* app) {
-  AssertKnownApp(app);
+  SCOPED_TRACE("FirebaseAppFactory::SignOut()");
   std::lock_guard<std::mutex> lock(mutex_);
+  DieIfAppIsNotKnownLocked(app);
   SignOutLocked(app);
 }
 
@@ -232,8 +247,7 @@ void FirebaseAppFactory::SignOutAllApps() {
   }
 }
 
-void FirebaseAppFactory::AssertKnownApp(App* app) {
-  std::lock_guard<std::mutex> lock(mutex_);
+void FirebaseAppFactory::DieIfAppIsNotKnownLocked(App* app) {
   for (const auto& entry : apps_) {
     if (entry.second.get() == app) {
       return;
@@ -246,11 +260,12 @@ FirestoreFactory::FirestoreFactory() : app_factory_(FirebaseAppFactory::GetInsta
 }
 
 Firestore* FirestoreFactory::GetDefaultFirestore() {
+  SCOPED_TRACE("FirestoreFactory::GetDefaultFirestore()");
   return GetFirestore(kDefaultAppName);
 }
 
 Firestore* FirestoreFactory::GetFirestore(const std::string& name) {
-  SCOPED_TRACE("FirestoreFactory::GetFirestore(" + name + ")");
+  SCOPED_TRACE("FirestoreFactory::GetFirestore()");
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Return the cached `Firestore` instance if we have one.
@@ -282,6 +297,7 @@ Firestore* FirestoreFactory::GetFirestore(const std::string& name) {
 }
 
 void FirestoreFactory::Delete(Firestore* firestore) {
+  SCOPED_TRACE("FirestoreFactory::Delete()");
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Find the given `Firestore` instance in the cache.
@@ -300,6 +316,7 @@ void FirestoreFactory::Delete(Firestore* firestore) {
 }
 
 void FirestoreFactory::Disown(Firestore* firestore) {
+  SCOPED_TRACE("FirestoreFactory::Disown()");
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Find the given `Firestore` instance in the cache.
