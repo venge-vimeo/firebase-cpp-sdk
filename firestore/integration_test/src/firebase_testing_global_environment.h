@@ -17,7 +17,7 @@
 #ifndef FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_GTEST_GLOBAL_STATE_H_
 #define FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_GTEST_GLOBAL_STATE_H_
 
-#include "util/global_state.h"
+#include "util/firebase_factories.h"
 #include "gtest/gtest.h"
 
 namespace firebase_test_framework {
@@ -28,7 +28,7 @@ class FirebaseTestingGlobalEnvironment : public ::testing::Environment {
   void SetUp() override;
   void TearDown() override;
  private:
-  ::firebase::firestore::testing::FirestoreTestingGlobalState* global_state_ = nullptr;
+  ::firebase::firestore::testing::FirebaseAppFactory* app_factory_ = nullptr;
 };
 
 }  // namespace firebase_test_framework

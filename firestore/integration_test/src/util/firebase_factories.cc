@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "util/firestore_instance_factory.h"
+#include "util/firebase_factories.h"
 
 #include <algorithm>
+#include <atomic>
 
 #include "app_framework.h"
 #include "firebase_test_framework.h"
@@ -98,19 +99,37 @@ std::unique_ptr<Firestore> CreateFirestore(App* app) {
   return std::unique_ptr<Firestore>(firestore);
 }
 
+std::atomic<FirebaseAppFactory*> gFirebaseAppFactorySharedInstance;
+
 }  // namespace
 
-App* FirebaseAppFactory::GetDefaultInstance() {
-  return GetInstance(kDefaultAppName);
+FirebaseAppFactory::FirebaseAppFactory() {
+  auto* old_shared_instance = gFirebaseAppFactorySharedInstance.exchange(this);
+  FIRESTORE_TESTING_ASSERT(old_shared_instance == nullptr);
 }
 
-App* FirebaseAppFactory::GetInstance(const std::string& name) {
+FirebaseAppFactory::~FirebaseAppFactory() {
+  auto* old_shared_instance = gFirebaseAppFactorySharedInstance.exchange(nullptr);
+  FIRESTORE_TESTING_ASSERT(old_shared_instance == this);
+}
+
+FirebaseAppFactory& FirebaseAppFactory::GetInstance() {
+  auto* shared_instance = gFirebaseAppFactorySharedInstance.load();
+  FIRESTORE_TESTING_ASSERT(shared_instance != nullptr);
+  return *shared_instance;
+}
+
+App* FirebaseAppFactory::GetDefaultApp() {
+  return GetApp(kDefaultAppName);
+}
+
+App* FirebaseAppFactory::GetApp(const std::string& name) {
   std::lock_guard<std::mutex> lock(mutex_);
-  return GetInstanceLocked(name);
+  return GetAppLocked(name);
 }
 
-App* FirebaseAppFactory::GetInstanceLocked(const std::string& name) {
-  SCOPED_TRACE("FirebaseAppFactory::GetInstanceLocked(" + name + ")");
+App* FirebaseAppFactory::GetAppLocked(const std::string& name) {
+  SCOPED_TRACE("FirebaseAppFactory::GetAppLocked(" + name + ")");
 
   // Return the cached Firebase `App` instance if we have one.
   {
@@ -129,7 +148,7 @@ App* FirebaseAppFactory::GetInstanceLocked(const std::string& name) {
   } else {
     const std::string scoped_trace_name = "InitializeApp-" + name;
     SCOPED_TRACE(scoped_trace_name.c_str());
-    AppOptions options = GetInstanceLocked(kDefaultAppName)->options();
+    AppOptions options = GetAppLocked(kDefaultAppName)->options();
     app = CreateAppWithName(name, options);
     FIRESTORE_TESTING_ASSERT(app);
   }
@@ -223,15 +242,15 @@ void FirebaseAppFactory::AssertKnownApp(App* app) {
   FIRESTORE_TESTING_DIE_WITH_MESSAGE("The given app is not known");
 }
 
-FirestoreFactory::FirestoreFactory(FirebaseAppFactory& app_factory) : app_factory_(app_factory) {
+FirestoreFactory::FirestoreFactory() : app_factory_(FirebaseAppFactory::GetInstance()) {
 }
 
-Firestore* FirestoreFactory::GetDefaultInstance() {
-  return GetInstance(kDefaultAppName);
+Firestore* FirestoreFactory::GetDefaultFirestore() {
+  return GetFirestore(kDefaultAppName);
 }
 
-Firestore* FirestoreFactory::GetInstance(const std::string& name) {
-  SCOPED_TRACE("FirestoreFactory::GetInstance(" + name + ")");
+Firestore* FirestoreFactory::GetFirestore(const std::string& name) {
+  SCOPED_TRACE("FirestoreFactory::GetFirestore(" + name + ")");
   std::lock_guard<std::mutex> lock(mutex_);
 
   // Return the cached `Firestore` instance if we have one.
@@ -243,7 +262,7 @@ Firestore* FirestoreFactory::GetInstance(const std::string& name) {
   }
 
   // Get or create the Firebase `App` instance to use.
-  App* app = app_factory_.GetInstance(name);
+  App* app = app_factory_.GetApp(name);
 
   // Ensure that we are signed in.
   app_factory_.SignIn(app);
@@ -293,8 +312,8 @@ void FirestoreFactory::Disown(Firestore* firestore) {
 
   FIRESTORE_TESTING_ASSERT_MESSAGE(it != firestores_.end(), "The given Firestore instance was not found");
 
-  // Remove the `Firestore` instance from the cache, which will in turn delete
-  // it since its `unique_ptr` will look after the deletion.
+  // Remove the `Firestore` instance from the cache, but "releasing" it first
+  // from the owning `unique_ptr` so that it doesn't get deleted.
   it->second.release();
   firestores_.erase(it);
 }

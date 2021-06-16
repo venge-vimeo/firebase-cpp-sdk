@@ -29,7 +29,7 @@
 #define FIREBASE_CONFIG_STRING ""
 #endif  // FIREBASE_CONFIG
 
-using ::firebase::firestore::testing::FirestoreTestingGlobalState;
+using ::firebase::firestore::testing::FirebaseAppFactory;
 
 namespace firebase_test_framework {
 
@@ -38,12 +38,13 @@ void FirebaseTestingGlobalEnvironment::SetUp() {
   // the directory that contains it, if found.
   FirebaseTest::FindFirebaseConfig(FIREBASE_CONFIG_STRING);
 
-  global_state_ = new FirestoreTestingGlobalState;
+  app_factory_ = new FirebaseAppFactory();
 }
 
 void FirebaseTestingGlobalEnvironment::TearDown() {
-  delete global_state_;
-  global_state_ = nullptr;
+  app_factory_->SignOutAllApps();
+  delete app_factory_;
+  app_factory_ = nullptr;
 }
 
 }  // firebase_test_framework firebase

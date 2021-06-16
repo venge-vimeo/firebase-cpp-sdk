@@ -15,7 +15,7 @@
 #include "firebase/firestore.h"
 #include "gtest/gtest.h"
 #include "util/assert.h"
-#include "util/firestore_instance_factory.h"
+#include "util/firebase_factories.h"
 
 namespace firebase {
 namespace firestore {

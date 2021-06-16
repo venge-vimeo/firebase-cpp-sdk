@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_FIRESTORE_INSTANCE_FACTORY_H_
-#define FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_FIRESTORE_INSTANCE_FACTORY_H_
+#ifndef FIRESTORE_INTEGRATION_TEST_SRC_UTIL_FIREBASE_FACTORIES_H_
+#define FIRESTORE_INTEGRATION_TEST_SRC_UTIL_FIREBASE_FACTORIES_H_
 
 #include <memory>
 #include <mutex>
@@ -31,20 +31,23 @@ namespace testing {
 
 class FirebaseAppFactory {
  public:
-  FirebaseAppFactory() = default;
+  FirebaseAppFactory();
+  ~FirebaseAppFactory();
 
   // Delete the copy and move constructors and assignment operators.
   FirebaseAppFactory(const FirebaseAppFactory&) = delete;
   FirebaseAppFactory& operator=(const FirebaseAppFactory&) = delete;
 
-  App* GetDefaultInstance();
-  App* GetInstance(const std::string& name);
+  static FirebaseAppFactory& GetInstance();
+
+  App* GetDefaultApp();
+  App* GetApp(const std::string& name);
   void SignIn(App* app);
   void SignOut(App* app);
   void SignOutAllApps();
 
  private:
-  App* GetInstanceLocked(const std::string& name);
+  App* GetAppLocked(const std::string& name);
   void SignOutLocked(App* app);
   void AssertKnownApp(App*);
 
@@ -55,14 +58,14 @@ class FirebaseAppFactory {
 
 class FirestoreFactory {
  public:
-  explicit FirestoreFactory(FirebaseAppFactory& app_factory);
+  FirestoreFactory();
 
   // Delete the copy and move constructors and assignment operators.
   FirestoreFactory(const FirestoreFactory&) = delete;
   FirestoreFactory& operator=(const FirestoreFactory&) = delete;
 
-  Firestore* GetDefaultInstance();
-  Firestore* GetInstance(const std::string& name);
+  Firestore* GetDefaultFirestore();
+  Firestore* GetFirestore(const std::string& name);
   void Delete(Firestore* firestore);
   void Disown(Firestore* firestore);
   
@@ -80,4 +83,4 @@ class FirestoreFactory {
 }  // namespace firestore
 }  // namespace firebase
 
-#endif  // FIREBASE_FIRESTORE_CLIENT_CPP_SRC_TESTS_UTIL_FIRESTORE_INSTANCE_FACTORY_H_
+#endif  // FIRESTORE_INTEGRATION_TEST_SRC_UTIL_FIREBASE_FACTORIES_H_

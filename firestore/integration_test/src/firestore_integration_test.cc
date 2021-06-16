@@ -7,7 +7,7 @@
 #include "absl/strings/ascii.h"
 #include "app_framework.h"
 #include "util/autoid.h"
-#include "util/global_state.h"
+#include "util/firebase_factories.h"
 
 namespace firebase {
 namespace firestore {
@@ -105,7 +105,7 @@ int WaitFor(const FutureBase& future) {
 
 void FirestoreIntegrationTest::SetUp() {
   FirebaseTest::SetUp();
-  firestore_factory_ = FirestoreTestingGlobalState::GetInstance().CreateFirestoreFactory();
+  firestore_factory_.reset(new FirestoreFactory());
 }
 
 void FirestoreIntegrationTest::TearDown() {
@@ -114,16 +114,16 @@ void FirestoreIntegrationTest::TearDown() {
 }
 
 App* FirestoreIntegrationTest::app() {
-  return firestore_factory_->app_factory().GetDefaultInstance();
+  return firestore_factory_->app_factory().GetDefaultApp();
 }
 
 Firestore* FirestoreIntegrationTest::TestFirestore() const {
-  Firestore* db = firestore_factory_->GetDefaultInstance();
+  Firestore* db = firestore_factory_->GetDefaultFirestore();
   LocateEmulator(db);
   return db;
 }
 Firestore* FirestoreIntegrationTest::TestFirestore(const std::string& name) const {
-  Firestore* db = firestore_factory_->GetInstance(name);
+  Firestore* db = firestore_factory_->GetFirestore(name);
   LocateEmulator(db);
   return db;
 }
