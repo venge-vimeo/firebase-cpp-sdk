@@ -61,6 +61,7 @@ class FirebaseAppFactory {
 class FirestoreFactory {
  public:
   FirestoreFactory();
+  ~FirestoreFactory();
 
   // Delete the copy and move constructors and assignment operators.
   FirestoreFactory(const FirestoreFactory&) = delete;

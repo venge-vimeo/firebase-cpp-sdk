@@ -24,6 +24,7 @@
 #include "util/assert.h"
 #include "util/future_test_util.h"
 
+using ::app_framework::LogDebug;
 using ::firebase::auth::Auth;
 using ::firebase::auth::User;
 using ::firebase_test_framework::FirebaseTest;
@@ -47,10 +48,12 @@ App* PlatformCreateAppWithName(const AppOptions& options, const char* name) {
 #else  // defined(__ANDROID__)
 
 App* PlatformCreateDefaultApp() {
+  LogDebug("zzyzx firebase::App::Create()");
   return App::Create();
 }
 
 App* PlatformCreateAppWithName(const AppOptions& options, const char* name) {
+  LogDebug("zzyzx firebase::App::Create(%s)", name.c_str());
   return App::Create(options, name);
 }
 
@@ -74,6 +77,7 @@ std::unique_ptr<Auth> CreateAuth(App* app) {
   ModuleInitializer initializer;
   auto initialize_auth_future = initializer.Initialize(app, &auth, [](App* app, void* target) {
     InitResult result;
+    LogDebug("zzyzx firebase::auth::Auth::GetAuth()");
     Auth* get_auth_result = Auth::GetAuth(app, &result);
     *reinterpret_cast<Auth**>(target) = get_auth_result;
     return result;
@@ -89,6 +93,7 @@ std::unique_ptr<Firestore> CreateFirestore(App* app) {
   ModuleInitializer initializer;
   auto initialize_firestore_future = initializer.Initialize(app, &firestore, [](App* app, void* target) {
     InitResult result;
+    LogDebug("zzyzx firebase::firestore::Firestore::GetInstance()");
     Firestore* get_instance_result = Firestore::GetInstance(app, &result);
     *reinterpret_cast<Firestore**>(target) = get_instance_result;
     return result;
@@ -111,6 +116,8 @@ FirebaseAppFactory::FirebaseAppFactory() {
 FirebaseAppFactory::~FirebaseAppFactory() {
   auto* old_shared_instance = gFirebaseAppFactorySharedInstance.exchange(nullptr);
   FIRESTORE_TESTING_ASSERT(old_shared_instance == this);
+  LogDebug("zzyzx delete Auth");
+  LogDebug("zzyzx delete App");
 }
 
 FirebaseAppFactory& FirebaseAppFactory::GetInstance() {
@@ -193,12 +200,17 @@ void FirebaseAppFactory::SignIn(App* app) {
 
   Auth* auth = GetAuthLocked(app);
 
-  if (auth->current_user() == nullptr) {
+  if (auth->current_user() != nullptr) {
+    LogDebug("zzyzx Auth::current_user() returned non-null");
+  } else {
+    LogDebug("zzyzx Auth::current_user() returned nullptr");
     SCOPED_TRACE("SignIn");
+    LogDebug("zzyzx Auth::SignInAnonymously()");
     auto sign_in_future = auth->SignInAnonymously();
     FirebaseTest::WaitForCompletion(sign_in_future, "Auth::SignInAnonymously()");
     FIRESTORE_TESTING_ASSERT_MESSAGE(sign_in_future.error() == 0, "Auth::SignInAnonymously() failed");
     FIRESTORE_TESTING_ASSERT(auth->current_user() != nullptr);
+    LogDebug("zzyzx shared_auth_->current_user() returned nullptr");
   }
 }
 
@@ -222,9 +234,14 @@ void FirebaseAppFactory::SignOutLocked(App* app) {
   }
 
   // Do nothing if there is no user signed in.
-  if (! auth || auth->current_user() == nullptr) {
+  if (! auth) {
     return;
   }
+
+  if (auth->current_user() == nullptr) {
+    LogDebug("zzyzx Auth::current_user() returned nullptr");
+  }
+  LogDebug("zzyzx Auth::current_user() returned non-null");
 
   // We only handle anonymous logins; if a non-anonymous user is logged in then
   // it must have been done by the test and the test should look after cleaning
@@ -233,6 +250,7 @@ void FirebaseAppFactory::SignOutLocked(App* app) {
 
   // Delete the anonymous user.
   SCOPED_TRACE("DeleteAnonymousUser");
+  LogDebug("zzyzx Auth::current_user()->Delete()");
   auto delete_user_future = auth->current_user()->Delete();
   FirebaseTest::WaitForCompletion(delete_user_future, "Auth::current_user()->Delete()");
   FIRESTORE_TESTING_ASSERT_MESSAGE(delete_user_future.error() == 0, "Auth::current_user()->Delete() failed");
@@ -257,6 +275,10 @@ void FirebaseAppFactory::DieIfAppIsNotKnownLocked(App* app) {
 }
 
 FirestoreFactory::FirestoreFactory() : app_factory_(FirebaseAppFactory::GetInstance()) {
+}
+
+FirestoreFactory::~FirestoreFactory() {
+  LogDebug("zzyzx delete Firestore");
 }
 
 Firestore* FirestoreFactory::GetDefaultFirestore() {
