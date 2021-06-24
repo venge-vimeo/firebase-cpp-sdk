@@ -68,6 +68,8 @@ set(android_SRCS
     src/android/blob_android.h
     src/android/collection_reference_android.cc
     src/android/collection_reference_android.h
+    src/android/cpp_pointer_android.cc
+    src/android/cpp_pointer_android.h
     src/android/direction_android.cc
     src/android/direction_android.h
     src/android/document_change_android.cc
