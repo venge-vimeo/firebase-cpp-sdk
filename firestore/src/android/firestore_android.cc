@@ -11,6 +11,7 @@
 #include "firestore/src/android/blob_android.h"
 #include "firestore/src/android/collection_reference_android.h"
 #include "firestore/src/android/converter_android.h"
+#include "firestore/src/android/cpp_pointer_android.h"
 #include "firestore/src/android/direction_android.h"
 #include "firestore/src/android/document_change_android.h"
 #include "firestore/src/android/document_change_type_android.h"
@@ -301,6 +302,7 @@ bool FirestoreInternal::Initialize(App* app) {
 
     BlobInternal::Initialize(loader);
     CollectionReferenceInternal::Initialize(loader);
+    CppPointerBase::Initialize(loader);
     DirectionInternal::Initialize(loader);
     DocumentChangeInternal::Initialize(loader);
     DocumentChangeTypeInternal::Initialize(loader);
