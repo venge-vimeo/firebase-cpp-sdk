@@ -64,6 +64,7 @@ android {
     multiDexEnabled true
   }
   externalNativeBuild.cmake {
+    version "3.7.0+"
     path 'CMakeLists.txt'
   }
   buildTypes {

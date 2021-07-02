@@ -10,11 +10,10 @@ let
       includeEmulator = true;
       emulatorVersion = "30.6.3";
       platformVersions = [ "28" ];
-      includeSources = false;
+      includeSources = true;
       includeSystemImages = false;
       systemImageTypes = [ "google_apis_playstore" ];
       abiVersions = [ "x86_64" "armeabi-v7a" "arm64-v8a" ];
-      cmakeVersions = [ "3.10.2" ];
       includeNDK = true;
       ndkVersions = ["17.2.4988734"];
       useGoogleAPIs = false;
@@ -38,6 +37,7 @@ in mkShell rec {
     xcodeenv
     cocoapods
     git
+    ninja
     # android-studio
 
     nixfmt
@@ -48,7 +48,6 @@ in mkShell rec {
   ];
   buildInputs = [
     jdk11
-    # gradle
     android.androidsdk
   ];
   nativeBuildInputs = [ boringssl ];
