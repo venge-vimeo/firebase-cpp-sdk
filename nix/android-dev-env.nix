@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> { config.android_sdk.accept_license = true; } }:
+{ pkgs ? import <nixpkgs> { config.android_sdk.accept_license = true; autoPatchelfIgnoreMissingDeps = true;} }:
 
 rec {
   android = pkgs.androidenv.composeAndroidPackages {
@@ -12,7 +12,7 @@ rec {
     systemImageTypes = [ "google_apis_playstore" ];
     abiVersions = [ "x86_64" "armeabi-v7a" "arm64-v8a" ];
     includeNDK = true;
-    ndkVersions = [ "17.2.4988734" ];
+    ndkVersions = [ "21.3.6528147" ];
     useGoogleAPIs = false;
     useGoogleTVAddOns = false;
     includeExtras = [ "extras;google;gcm" ];

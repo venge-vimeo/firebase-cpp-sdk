@@ -28,4 +28,4 @@ if stdenv.isDarwin then
     '';
   }
 else
-  { }
+  stdenv.mkDerivation { name = "empty-xcode-wrapper"; }

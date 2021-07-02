@@ -12,6 +12,7 @@ in mkShell (androidDevEnv.envVars // rec {
     protobuf
     git
     ninja
+    pkg-config
 
     nixfmt
     which
@@ -19,11 +20,11 @@ in mkShell (androidDevEnv.envVars // rec {
     neovim
     emacs
   ] ++ (if stdenv.isDarwin then [ xcodeenv cocoapods ] else [ ]);
-  buildInputs = [ jdk11 androidDevEnv.android.androidsdk ];
-  nativeBuildInputs = [ boringssl ];
+  buildInputs = [ clang jdk11 androidDevEnv.android.androidsdk ];
+  nativeBuildInputs = [ libsecret  boringssl ];
   # TODO(wuandy): this is probably a setup error on my machine, not required for other
   # people. We should fix the issue properly and remove this hack.
   shellHook = ''
-    unset CMAKE_FRAMEWORK_PATH
+    # unset CMAKE_FRAMEWORK_PATH
   '';
 })
