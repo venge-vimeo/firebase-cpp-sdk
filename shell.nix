@@ -22,9 +22,4 @@ in mkShell (androidDevEnv.envVars // rec {
   ] ++ (if stdenv.isDarwin then [ xcodeenv cocoapods ] else [ ]);
   buildInputs = [ clang jdk11 androidDevEnv.android.androidsdk ];
   nativeBuildInputs = [ libsecret  boringssl ];
-  # TODO(wuandy): this is probably a setup error on my machine, not required for other
-  # people. We should fix the issue properly and remove this hack.
-  shellHook = ''
-    # unset CMAKE_FRAMEWORK_PATH
-  '';
 })
