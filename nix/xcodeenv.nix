@@ -1,4 +1,4 @@
-{ stdenv, pkgs ? import <nixpkgs> { } }:
+{ stdenv, pkgs }:
 { xcodeBaseDir ? "/Applications/Xcode.app" }:
 
 if stdenv.isDarwin then

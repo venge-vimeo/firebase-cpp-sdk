@@ -1,14 +1,16 @@
-with import <nixpkgs> { config.android_sdk.accept_license = true; };
+with (import ./nix/pinned-nixpkgs.nix);
+with pkgs;
 
 let
   pythonEnv = python3.withPackages (ps: [ ps.absl-py ps.protobuf ps.attrs ]);
-  xcodeenv = import ./nix/xcodeenv.nix { inherit stdenv; } { };
-  androidDevEnv = import ./nix/android-dev-env.nix { };
-in mkShell (androidDevEnv.envVars // rec {
+  xcodeenv = import ./nix/xcodeenv.nix { inherit stdenv; inherit pkgs; } { };
+  androidDevEnv = import ./nix/android-dev-env.nix pkgs ;
+in pkgs.mkShell (androidDevEnv.envVars // rec {
   packages = [
     pythonEnv
     cmake
-    ccache
+    # This is broken in the pinned version.
+    # ccache
     protobuf
     git
     ninja

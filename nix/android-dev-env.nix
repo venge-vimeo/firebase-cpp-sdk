@@ -1,4 +1,4 @@
-{ pkgs ? import <nixpkgs> { config.android_sdk.accept_license = true; autoPatchelfIgnoreMissingDeps = true;} }:
+pkgs:
 
 rec {
   android = pkgs.androidenv.composeAndroidPackages {
