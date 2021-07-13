@@ -185,6 +185,8 @@ else()
     ${FIREBASE_INTEGRATION_TEST_SRCS}
   )
 
+  add_executable("UnityIssue1083" "UnityIssue1083.cc")
+
   if(APPLE)
     set(ADDITIONAL_LIBS
       gssapi_krb5
@@ -226,3 +228,4 @@ set(firebase_libs firebase_firestore firebase_auth firebase_app)
 set(gtest_libs gtest gmock)
 target_link_libraries(${integration_test_target_name} ${firebase_libs}
   ${gtest_libs} ${ADDITIONAL_LIBS})
+target_link_libraries("UnityIssue1083" ${firebase_libs} ${ADDITIONAL_LIBS})
