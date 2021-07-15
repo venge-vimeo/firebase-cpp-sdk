@@ -37,8 +37,13 @@ The final listener notifications show TestKey=OldValue.
 #include <cstdlib>
 #include <exception>
 #include <iostream>
+#include <memory>
+#include <mutex>
+#include <random>
 #include <string>
 #include <thread>
+#include <vector>
+#include <unordered_set>
 
 #include "firebase/auth.h"
 #include "firebase/firestore.h"
@@ -60,6 +65,28 @@ using ::firebase::firestore::MetadataChanges;
 using ::firebase::firestore::SetOptions;
 using ::firebase::firestore::SnapshotMetadata;
 
+constexpr int kAutoIdLength = 20;
+const char kAutoIdAlphabet[] = "ABCDEFGHJKLMNPQRTUVWXYZ0123456789";
+
+std::string GenerateRandomDocumentPath() {
+  std::string auto_id;
+  auto_id.reserve(kAutoIdLength);
+
+  // -2 here because:
+  //   * sizeof(kAutoIdAlphabet) includes the trailing null terminator
+  //   * uniform_int_distribution is inclusive on both sizes
+  std::uniform_int_distribution<int> letters(0, sizeof(kAutoIdAlphabet) - 2);
+
+  static auto* random_device = new std::random_device();
+
+  for (int i = 0; i < kAutoIdLength; i++) {
+    int rand_index = letters(*random_device);
+    auto_id.append(1, kAutoIdAlphabet[rand_index]);
+  }
+
+  return "UnityIssue1083/" + auto_id;
+}
+
 void AwaitSuccess(const FutureBase& future, const std::string& operation) {
   while (future.status() == FutureStatus::kFutureStatusPending) {
     std::this_thread::yield();
@@ -74,16 +101,20 @@ void AwaitSuccess(const FutureBase& future, const std::string& operation) {
   }
 }
 
-void ReportDocumentSnapshotCallback(const DocumentSnapshot& snapshot, Error error, const std::string& error_message) {
+std::string ReportDocumentSnapshotCallback(const DocumentSnapshot& snapshot, Error error, const std::string& error_message) {
   if (error != Error::kErrorOk) {
     std::cout << "DocumentSnapshotCallback() error=" << error << " message: " << error_message << std::endl;
-  } else {
-    std::cout << "DocumentSnapshotCallback() id=" << snapshot.id()
-      << " is_from_cache=" << snapshot.metadata().is_from_cache()
-      << " has_pending_writes=" << snapshot.metadata().has_pending_writes()
-      << " TestKey=" << snapshot.Get("TestKey", DocumentSnapshot::ServerTimestampBehavior::kNone).string_value()
-      << std::endl;
+    return "";
   }
+
+  const std::string value = snapshot.Get("TestKey", DocumentSnapshot::ServerTimestampBehavior::kNone).string_value();
+  std::cout << "DocumentSnapshotCallback() id=" << snapshot.id()
+    << " is_from_cache=" << snapshot.metadata().is_from_cache()
+    << " has_pending_writes=" << snapshot.metadata().has_pending_writes()
+    << " TestKey=" << value
+    << std::endl;
+  
+  return value;
 };
 
 void step1(const std::string& document_path) {
@@ -104,8 +135,9 @@ void step1(const std::string& document_path) {
 
   // Uncommenting the call to `SignOut()` below may fix `SignInAnonymously()` failing with "internal error".
   //AwaitSuccess(auth->current_user()->Delete(), "auth->current_user()->Delete()");
-  auth->SignOut();
+  //auth->SignOut();
 
+  /*
   std::cout << "Auth::current_user()" << std::endl;
   User* user = auth->current_user();
   if (user) {
@@ -115,6 +147,7 @@ void step1(const std::string& document_path) {
     auto future = auth->SignInAnonymously();
     AwaitSuccess(future, "SignInAnonymously()");
   }
+  */
 
   std::cout << "Firestore::GetInstance()" << std::endl;
   std::unique_ptr<Firestore> db(Firestore::GetInstance(app.get()));
@@ -161,7 +194,7 @@ void step1(const std::string& document_path) {
   listener_registration.Remove();
 }
 
-void step2(const std::string& document_path) {
+bool step2(const std::string& document_path) {
   std::cout << "===== Step 2 starting with document: " << document_path << std::endl;
   std::cout << "App::Create()" << std::endl;
   std::unique_ptr<App> app(App::Create());
@@ -190,56 +223,81 @@ void step2(const std::string& document_path) {
 
   DocumentReference doc = db->Document(document_path.c_str());
 
+  class CallbackValues {
+   public:
+    void AddValue(const std::string& value) {
+      std::lock_guard<std::mutex> lock(mutex_);
+      values_.emplace_back(value);
+    }
+    std::vector<std::string> values() const {
+      std::lock_guard<std::mutex> lock(mutex_);
+      return values_;
+    }
+   private:
+    mutable std::mutex mutex_;
+    std::vector<std::string> values_;
+  };
+
+  auto callback_values = std::make_shared<CallbackValues>();
+
   ListenerRegistration listener_registration = doc.AddSnapshotListener(
-      MetadataChanges::kInclude, ReportDocumentSnapshotCallback);
+      MetadataChanges::kInclude,
+      [callback_values](const DocumentSnapshot& snapshot, Error error, const std::string& error_message) {
+        std::string value = ReportDocumentSnapshotCallback(snapshot, error, error_message);
+        callback_values->AddValue(value);
+      }
+  );
 
   std::this_thread::sleep_for(std::chrono::seconds(4));
 
   listener_registration.Remove();
-}
 
-struct ParsedArgs {
-  bool ok;
-  std::string document_path;
-};
-
-ParsedArgs ParseArgs(int argc, char** argv) {
-  ParsedArgs parsed_args;
-
-  if (argc == 1) {
-    std::cerr << "ERROR: invalid command-line arguments: "
-      << "a document path must be specified" << std::endl;
-    parsed_args.ok = false;
-  } else if (argc > 2) {
-    std::cerr << "ERROR: invalid command-line arguments: "
-      << "unexpected argument: " << argv[2] << std::endl;
-    parsed_args.ok = false;
-  } else {
-    parsed_args.ok = true;
+  std::vector<std::string> values = callback_values->values();
+  if (values.size() == 0) {
+    std::cout << "TEST FAILED: no callbacks were received" << std::endl;
+    return false;
   }
 
-  if (parsed_args.ok) {
-    parsed_args.document_path = argv[1];
+  std::unordered_set<std::string> errors;
+  for (const std::string& value : values) {
+    if (value != "NewValue") {
+      errors.emplace(value);
+    }
   }
 
-  if (! parsed_args.ok) {
-    std::cerr << "Syntax: " << argv[0] << " [document_path]" << std::endl;
-    std::cerr << "Example: " << argv[0] << " states/California" << std::endl;
+  if (errors.size() > 0) {
+    std::cout << "TEST FAILED: incorrect values were received: ";
+    bool first = true;
+    for (const std::string& value : errors) {
+      if (! first) {
+        std::cout << ", ";
+      }
+      first = false;
+      std::cout << value;
+    }
+    std::cout << std::endl;
+    return false;
   }
 
-  return parsed_args;
+  std::cout << "TEST PASSED!" << std::endl;
+  return true;
 }
 
 int main(int argc, char** argv) {
-  ParsedArgs parsed_args = ParseArgs(argc, argv);
-  if (! parsed_args.ok) {
+  if (argc > 1) {
+    std::cerr << "ERROR: no command-line arguments are supported, "
+      "but one was specified: " << argv[1];
     return 2;
   }
 
-  firebase::SetLogLevel(firebase::LogLevel::kLogLevelDebug);
+  //firebase::SetLogLevel(firebase::LogLevel::kLogLevelDebug);
+  //Firestore::set_log_level(firebase::LogLevel::kLogLevelDebug);
 
-  step1(parsed_args.document_path);
-  step2(parsed_args.document_path);
+  const std::string document_path = GenerateRandomDocumentPath();
+  std::cout << "Using document for this test: " << document_path << std::endl;
 
-  return 0;
+  step1(document_path);
+  bool test_passed = step2(document_path);
+
+  return test_passed ? 0 : 1;
 }
