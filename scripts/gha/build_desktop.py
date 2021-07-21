@@ -134,7 +134,7 @@ def install_cpp_dependencies_with_vcpkg(arch, msvc_runtime_library, cleanup=True
   _install_cpp_dependencies_with_vcpkg(arch, msvc_runtime_library, use_openssl)
   vcpkg_triplet = utils.get_vcpkg_triplet(arch, msvc_runtime_library)
   # Verify the installation with an attempt to auto fix any issues.
-  success = utils.verify_vcpkg_build(vcpkg_triplet, attempt_auto_fix=True)
+  success = utils.verify_vcpkg_build(vcpkg_triplet, attempt_auto_fix=False)
   if not success:
     print("Installation was not successful but auto fix was attempted. "
           "Retrying installation...")
