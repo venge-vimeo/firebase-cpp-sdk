@@ -42,7 +42,7 @@ option(FIREBASE_INCLUDE_DYNAMIC_LINKS
        ${FIREBASE_INCLUDE_LIBRARY_DEFAULT})
 option(FIREBASE_INCLUDE_FIRESTORE
        "Include the Cloud Firestore library."
-       ${FIREBASE_INCLUDE_LIBRARY_DEFAULT})
+      OFF) 
 option(FIREBASE_INCLUDE_FUNCTIONS
        "Include the Cloud Functions for Firebase library."
        ${FIREBASE_INCLUDE_LIBRARY_DEFAULT})
