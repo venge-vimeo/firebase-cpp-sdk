@@ -84,7 +84,12 @@ jobs:
       - uses: actions/checkout@v2
         with:
           submodules: true
-      
+    
+    - name: Setup cmake
+      uses: jwlawson/actions-setup-cmake@v1.9
+      with:
+        cmake-version: '3.16.x'      
+
       - name: Set env vars (ubuntu)
         if: startsWith(matrix.os, 'ubuntu')
         shell: bash
@@ -153,7 +158,9 @@ jobs:
           python scripts/gha/install_prereqs_desktop.py
 
       - name: Build SDK
+        shell: bash
         run: |
+          cmake --version
           python scripts/gha/build_desktop.py --build_tests --arch "${{ matrix.architecture }}" --config "${{ matrix.build_type }}" --msvc_runtime_library "${{ matrix.msvc_runtime }}" --gha_build
 
       - name: Stats for ccache (mac and linux)
