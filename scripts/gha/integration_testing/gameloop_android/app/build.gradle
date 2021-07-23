@@ -2,8 +2,8 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 
 android {
+  ndkVersion '22.1.7171670'
     compileSdkVersion rootProject.compileSdk
-    buildToolsVersion rootProject.buildTools
 
     defaultConfig {
         applicationId "com.google.firebase.gameloop"

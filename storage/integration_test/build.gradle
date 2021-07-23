@@ -20,8 +20,8 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.3.3'
-    classpath 'com.google.gms:google-services:4.0.1'
+    classpath 'com.android.tools.build:gradle:4.2.2'
+    classpath 'com.google.gms:google-services:4.3.8'
   }
 }
 
@@ -36,12 +36,12 @@ allprojects {
 apply plugin: 'com.android.application'
 
 android {
+  ndkVersion '22.1.7171670'
   compileOptions {
     sourceCompatibility 1.8
     targetCompatibility 1.8
   }
-  compileSdkVersion 28
-  buildToolsVersion '28.0.3'
+  compileSdkVersion 30
 
   sourceSets {
     main {
@@ -54,12 +54,12 @@ android {
 
   defaultConfig {
     applicationId 'com.google.firebase.cpp.storage.testapp'
-    minSdkVersion 16
-    targetSdkVersion 28
+    minSdkVersion 27
+    targetSdkVersion 27
     versionCode 1
     versionName '1.0'
     externalNativeBuild.cmake {
-      arguments "-DFIREBASE_CPP_SDK_DIR=$gradle.firebase_cpp_sdk_dir"
+      arguments "-DFIREBASE_CPP_SDK_DIR=$gradle.firebase_cpp_sdk_dir", '-DANDROID_STL=c++_shared', '-DANDROID_ARM_MODE=arm'
     }
   }
   externalNativeBuild.cmake {

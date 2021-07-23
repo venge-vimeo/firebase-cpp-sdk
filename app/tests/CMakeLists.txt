@@ -413,3 +413,5 @@ firebase_cpp_cc_test(firebase_app_future_manager_test
 
 # google3 Dependencies ]]
 
+target_compile_options(firebase_app_for_testing_ios PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+set_target_properties(firebase_app_for_testing_ios PROPERTIES LINK_FLAGS -fsanitize=address)

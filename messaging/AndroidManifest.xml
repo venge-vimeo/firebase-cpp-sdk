@@ -13,7 +13,7 @@
   <uses-permission
       android:name="${applicationId}.permission.C2D_MESSAGE" />
 
-  <application>
+  <application android:extractNativeLibs="true">
     <service android:name="com.google.firebase.messaging.cpp.ListenerService"
              android:exported="false" >
       <intent-filter>

@@ -18,7 +18,7 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.3.3'
+    classpath 'com.android.tools.build:gradle:4.2.2'
   }
 }
 allprojects {
@@ -36,8 +36,8 @@ ext {
 }
 
 android {
-  compileSdkVersion 28
-  buildToolsVersion '28.0.3'
+  ndkVersion '22.1.7171670'
+  compileSdkVersion 30
 
   sourceSets {
     main {
@@ -53,8 +53,8 @@ android {
 
   defaultConfig {
     // This is the platform API where NativeActivity was introduced.
-    minSdkVersion 9
-    targetSdkVersion 28
+    minSdkVersion 27
+    targetSdkVersion 27
     versionCode 1
     versionName "1.0"
 
@@ -69,6 +69,7 @@ android {
         targets 'firebase_app'
         // Don't configure all the cmake subprojects.
         arguments '-DFIREBASE_INCLUDE_LIBRARY_DEFAULT=OFF',
+'-DANDROID_STL=c++_shared', '-DANDROID_ARM_MODE=arm',
 		  "-DFIREBASE_ANDROID_STL=${firebaseAndroidStl}"
       }
     }

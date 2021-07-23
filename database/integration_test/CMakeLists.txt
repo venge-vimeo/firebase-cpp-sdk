@@ -15,6 +15,10 @@
 # Cmake file for a single C++ integration test build.
 
 cmake_minimum_required(VERSION 2.8)
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fno-omit-frame-pointer")
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fsanitize=address")
 
 set(FIREBASE_PYTHON_EXECUTABLE "python" CACHE FILEPATH
   "The Python interpreter to use, such as one from a venv")
@@ -225,3 +229,5 @@ set(firebase_libs firebase_database firebase_auth firebase_app)
 set(gtest_libs gtest gmock)
 target_link_libraries(${integration_test_target_name} ${firebase_libs}
   ${gtest_libs} ${ADDITIONAL_LIBS})
+target_compile_options(${integration_test_target_name} PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+set_target_properties(${integration_test_target_name} PROPERTIES LINK_FLAGS -fsanitize=address)

@@ -18,8 +18,8 @@ buildscript {
     jcenter()
   }
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.3.3'
-    classpath 'com.google.gms:google-services:4.2.0'
+    classpath 'com.android.tools.build:gradle:4.2.2'
+    classpath 'com.google.gms:google-services:4.3.8'
   }
 }
 allprojects {
@@ -32,11 +32,12 @@ allprojects {
 apply plugin: 'com.android.library'
 
 android {
+  ndkVersion '22.1.7171670'
   compileOptions {
     sourceCompatibility 1.8
     targetCompatibility 1.8
   }
-  compileSdkVersion 28
+  compileSdkVersion 30
 
   sourceSets {
     main {
