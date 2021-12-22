@@ -18,6 +18,7 @@
 #define FIREBASE_FIRESTORE_SRC_COMMON_FUTURE2_H_
 
 #include <functional>
+#include <string>
 
 namespace firebase {
 
@@ -26,6 +27,8 @@ enum Future2Status {
   kFutureStatusPending,
   kFutureStatusInvalid
 };
+
+class Future2CompleterBase;
 
 class Future2Base {
  public:
@@ -40,7 +43,7 @@ class Future2Base {
 
   Future2Status status() const;
   int error() const;
-  const char* error_message() const;
+  std::string error_message() const;
   const void* result_void() const;
 
   typedef void (*CompletionCallback)(const Future2Base&, void*);
@@ -48,6 +51,7 @@ class Future2Base {
   void OnCompletion(std::function<void(const Future2Base&)>) const;
 
  private:
+  friend class Future2CompleterBase;
   class Impl;
   Impl* impl_ = nullptr;
 };

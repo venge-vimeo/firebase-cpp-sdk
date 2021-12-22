@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
+#include <functional>
+#include <string>
+
 #include "firestore/src/common/future2.h"
 #include "firestore/src/common/future2_internal.h"
 
+#include "app/src/assert.h"
 #include "app/memory/shared_ptr.h"
 #include "app/src/include/firebase/internal/mutex.h"
 
@@ -34,6 +38,12 @@ class Future2ControlBlock {
   Future2ControlBlock() : mutex_(Mutex::Mode::kModeNonRecursive) {
   }
 
+  ~Future2ControlBlock() {
+    if (result_) {
+      result_deleter_(result_);
+    }
+  }
+
   Future2ControlBlock(const Future2ControlBlock&) = delete;
   Future2ControlBlock& operator=(const Future2ControlBlock&) = delete;
   Future2ControlBlock(Future2ControlBlock&&) = delete;
@@ -49,7 +59,7 @@ class Future2ControlBlock {
     return error_;
   }
 
-  const char* error_message() const {
+  std::string error_message() const {
     MutexLock lock(mutex_);
     return error_message_;
   }
@@ -59,12 +69,23 @@ class Future2ControlBlock {
     return result_;
   }
  
+  void Complete(void* result, std::function<void(void*)> result_deleter, int error, const std::string& error_message) {
+    MutexLock lock(mutex_);
+    FIREBASE_ASSERT(status_ == Future2Status::kFutureStatusPending);
+    status_ = Future2Status::kFutureStatusComplete;
+    result_ = result;
+    result_deleter_ = Move(result_deleter);
+    error_ = error;
+    error_message_ = error_message;
+  }
+
  private:
   mutable Mutex mutex_;
-  Future2Status status_ = Future2Status::kFutureStatusInvalid;
+  Future2Status status_ = Future2Status::kFutureStatusPending;
   int error_ = -1;
-  const char* error_message_ = nullptr;
-  const void* result_ = nullptr;
+  std::string error_message_;
+  void* result_ = nullptr;
+  std::function<void(void*)> result_deleter_;
 };
 
 }  // namespace
@@ -129,12 +150,27 @@ int Future2Base::error() const {
   return impl_->control_block().error();
 }
 
-const char* Future2Base::error_message() const {
+std::string Future2Base::error_message() const {
   return impl_->control_block().error_message();
 }
 
 const void* Future2Base::result_void() const {
   return impl_->control_block().result();
+}
+
+Future2CompleterBase::Future2CompleterBase(Future2Base future) : impl_(new Future2Base::Impl(*future.impl_)) {
+}
+
+Future2CompleterBase::~Future2CompleterBase() {
+  delete impl_;
+}
+
+void Future2CompleterBase::CompleteSuccessfully(void* result, std::function<void(void*)> result_deleter, int error) {
+  impl_->control_block().Complete(result, Move(result_deleter), error, "");
+}
+
+void Future2CompleterBase::CompleteUnsuccessfully(int error, const std::string& error_message) {
+  impl_->control_block().Complete(nullptr, [](void*){}, error, error_message);
 }
 
 }  // namespace firebase
