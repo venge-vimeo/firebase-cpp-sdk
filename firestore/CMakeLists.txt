@@ -35,6 +35,9 @@ set(common_SRCS
     src/common/firestore_exceptions_common.h
     src/common/futures.cc
     src/common/futures.h
+    src/common/future2.h
+    src/common/future2_internal.h
+    src/common/future2.cc
     src/common/hard_assert_common.cc
     src/common/hard_assert_common.h
     src/common/listener_registration.cc

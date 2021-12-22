@@ -76,33 +76,7 @@ set(FIREBASE_INTEGRATION_TEST_PORTABLE_TEST_SRCS
     # Copy of the standard integration test source file. This ensures that even
     # if only the internal integration test is run, all of the tests on the
     # public API are performed.
-    src/integration_test.cc
-    # Internal tests below.
-    src/bundle_test.cc
-    src/collection_reference_test.cc
-    src/cursor_test.cc
-    src/document_change_test.cc
-    src/document_reference_test.cc
-    src/document_snapshot_test.cc
-    src/field_value_test.cc
-    src/fields_test.cc
-    src/firestore_test.cc
-    src/includes_test.cc
-    src/listener_registration_test.cc
-    src/numeric_transforms_test.cc
-    src/query_network_test.cc
-    src/query_snapshot_test.cc
-    src/query_test.cc
-    src/sanity_test.cc
-    src/server_timestamp_test.cc
-    src/set_options_test.cc
-    src/settings_test.cc
-    src/smoke_test.cc
-    src/source_test.cc
-    src/transaction_test.cc
-    src/type_test.cc
-    src/validation_test.cc
-    src/write_batch_test.cc
+    src/future2_test.cc
 )
 
 # These sources contain the actual tests that run on Android only.
@@ -156,18 +130,13 @@ if(NOT ANDROID)
   # Include portable source files and portable tests, plus tests that shouldn't
   # be included on Android.
   set(FIREBASE_INTEGRATION_TEST_SRCS
-    ${FIREBASE_INTEGRATION_TEST_PORTABLE_SUPPORT_SRCS}
-    ${FIREBASE_INTEGRATION_TEST_PORTABLE_TEST_SRCS}
-    ${FIREBASE_INTEGRATION_TEST_DESKTOP_AND_IOS_TEST_SRCS}
+    src/future2_test.cc
   )
 else()
   # Include portable source files and tests, plus Android-specific source files
   # and tests.
   set(FIREBASE_INTEGRATION_TEST_SRCS
-    ${FIREBASE_INTEGRATION_TEST_PORTABLE_SUPPORT_SRCS}
-    ${FIREBASE_INTEGRATION_TEST_ANDROID_SUPPORT_SRCS}
-    ${FIREBASE_INTEGRATION_TEST_PORTABLE_TEST_SRCS}
-    ${FIREBASE_INTEGRATION_TEST_ANDROID_TEST_SRCS}
+    src/future2_test.cc
   )
 endif()
 
