@@ -43,12 +43,18 @@ class Future2Completer : public Future2CompleterBase {
  public:
   using Future2CompleterBase::Future2CompleterBase;
 
-  using Future2CompleterBase::CompleteSuccessfully;
-  void CompleteSuccessfully(T* result, int error = 0) {
-    CompleteSuccessfully(result, [](void* result) {
-      delete static_cast<T*>(result);
+  void CompleteSuccessfully(T* result, std::function<void(T*)> result_deleter, int error = 0) {
+    Future2CompleterBase::CompleteSuccessfully(result, [result_deleter](void* result) {
+      result_deleter(static_cast<T*>(result));
     }, error);
   }
+
+  void CompleteSuccessfully(T* result, int error = 0) {
+    CompleteSuccessfully(result, [](T* result) {
+      delete result;
+    }, error);
+  }
+
 };
 
 }  // namespace firebase
