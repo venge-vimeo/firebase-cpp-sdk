@@ -103,9 +103,6 @@ class Future2Base::Impl {
   SharedPtr<Future2ControlBlock> control_block_;
 };
 
-Future2Base::Future2Base() : impl_(new Impl()) {
-}
-
 Future2Base::~Future2Base() {
   delete impl_;
 }
@@ -143,22 +140,24 @@ Future2Base& Future2Base::operator=(Future2Base&& other) noexcept {
 }
 
 Future2Status Future2Base::status() const {
-  return impl_->control_block().status();
+  return impl_ ? impl_->control_block().status() : Future2Status::kFutureStatusInvalid;
 }
 
 int Future2Base::error() const {
-  return impl_->control_block().error();
+  return impl_ ? impl_->control_block().error() : -1;
 }
 
 std::string Future2Base::error_message() const {
-  return impl_->control_block().error_message();
+  return impl_ ? impl_->control_block().error_message() : "";
 }
 
 const void* Future2Base::result_void() const {
-  return impl_->control_block().result();
+  return impl_ ? impl_->control_block().result() : nullptr;
 }
 
-Future2CompleterBase::Future2CompleterBase(Future2Base future) : impl_(new Future2Base::Impl(*future.impl_)) {
+Future2CompleterBase::Future2CompleterBase(Future2Base& future) : impl_(new Future2Base::Impl()) {
+  FIREBASE_ASSERT(future.impl_ == nullptr);
+  future.impl_ = new Future2Base::Impl(*impl_);
 }
 
 Future2CompleterBase::~Future2CompleterBase() {

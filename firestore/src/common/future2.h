@@ -32,8 +32,8 @@ class Future2CompleterBase;
 
 class Future2Base {
  public:
-  Future2Base();
-  ~Future2Base();
+  Future2Base() = default;
+  virtual ~Future2Base();
 
   Future2Base(const Future2Base&);
   Future2Base& operator=(const Future2Base&);
