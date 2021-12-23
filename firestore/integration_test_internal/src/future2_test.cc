@@ -28,6 +28,7 @@
 using ::firebase::Future2;
 using ::firebase::Future2Base;
 using ::firebase::Future2Completer;
+using ::firebase::Future2CompleterBase;
 using ::firebase::Future2Status;
 using ::firebase::Move;
 using ::testing::PrintToString;
@@ -183,6 +184,22 @@ MATCHER_P2(FutureFailedWithError, expected_error, expected_error_message, DebugS
   return CompareFutureProperties(*result_listener, arg, Future2Status::kFutureStatusComplete, expected_error, expected_error_message, nullptr);
 }
 
+template <typename T>
+void CompleteFutureSuccessfully(Future2<T>& future, const T& result) {
+  Future2Completer<T> completer(future);
+  completer.CompleteSuccessfully(result);
+}
+
+void CompleteFutureUnsuccessfully(Future2Base& future, int error, const std::string& error_message) {
+  Future2CompleterBase completer(future);
+  completer.CompleteUnsuccessfully(error, error_message);
+}
+
+template <typename T>
+void MoveFromFuture(Future2<T>&& future) {
+  Future2<T>(Move(future));
+}
+
 TEST(Future2Test, ZeroArgumentConstructor) {
   Future2<int> future;
 
@@ -199,8 +216,7 @@ TEST(Future2Test, CopyConstructorCopiesInvalidFuture) {
 
 TEST(Future2Test, CopyConstructorCopiesSuccessfulFuture) {
   Future2<int> successful_future;
-  Future2Completer<int> completer(successful_future);
-  completer.CompleteSuccessfully(42);
+  CompleteFutureSuccessfully(successful_future, 42);
 
   Future2<int> successful_future_copy(successful_future);
 
@@ -209,8 +225,7 @@ TEST(Future2Test, CopyConstructorCopiesSuccessfulFuture) {
 
 TEST(Future2Test, CopyConstructorCopiesFailedFuture) {
   Future2<int> failed_future;
-  Future2Completer<int> completer(failed_future);
-  completer.CompleteUnsuccessfully(1234, "errmsg");
+  CompleteFutureUnsuccessfully(failed_future, 1234, "errmsg");
 
   Future2<int> failed_future_copy(failed_future);
 
@@ -219,9 +234,8 @@ TEST(Future2Test, CopyConstructorCopiesFailedFuture) {
 
 TEST(Future2Test, CopyConstructorCopiesAMovedFromFuture) {
   Future2<int> moved_from_future;
-  Future2Completer<int> completer(moved_from_future);
-  completer.CompleteSuccessfully(42);
-  Future2<int>(Move(moved_from_future));
+  CompleteFutureSuccessfully(moved_from_future, 42);
+  MoveFromFuture(Move(moved_from_future));
 
   Future2<int> moved_from_future_copy(moved_from_future);
 
@@ -238,8 +252,7 @@ TEST(Future2Test, MoveConstructorMovesInvalidFuture) {
 
 TEST(Future2Test, MoveConstructorMovesSuccessfulFuture) {
   Future2<int> successful_future;
-  Future2Completer<int> completer(successful_future);
-  completer.CompleteSuccessfully(42);
+  CompleteFutureSuccessfully(successful_future, 42);
 
   Future2<int> successful_future_moved(Move(successful_future));
 
@@ -248,8 +261,7 @@ TEST(Future2Test, MoveConstructorMovesSuccessfulFuture) {
 
 TEST(Future2Test, MoveConstructorMovesFailedFuture) {
   Future2<int> failed_future;
-  Future2Completer<int> completer(failed_future);
-  completer.CompleteUnsuccessfully(1234, "errmsg");
+  CompleteFutureUnsuccessfully(failed_future, 1234, "errmsg");
 
   Future2<int> failed_future_moved(Move(failed_future));
 
@@ -258,9 +270,8 @@ TEST(Future2Test, MoveConstructorMovesFailedFuture) {
 
 TEST(Future2Test, MoveConstructorMovesMovedFromFuture) {
   Future2<int> moved_from_future;
-  Future2Completer<int> completer(moved_from_future);
-  completer.CompleteSuccessfully(42);
-  Future2<int>(Move(moved_from_future));
+  CompleteFutureSuccessfully(moved_from_future, 42);
+  MoveFromFuture(Move(moved_from_future));
 
   Future2<int> moved_from_future_moved(Move(moved_from_future));
 
