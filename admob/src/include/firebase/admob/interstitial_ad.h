@@ -29,15 +29,14 @@ namespace internal {
 class InterstitialAdInternal;
 }  // namespace internal
 
-/// @deprecated
-/// @brief Loads and displays AdMob interstitial ads.
-///
-/// The functionality in the <code>firebase::admob</code> namespace has
-/// been replaced by the Google Mobile Ads SDK in the
-/// <code>firebase::gma</code> namespace. Learn how to transition to the
-/// new SDK in our <a
+/// @deprecated The functionality in the <code>firebase::admob</code>
+/// namespace has been replaced by the Google Mobile Ads SDK in the
+/// <code>firebase::gma</code> namespace. Learn how to transition to the new
+/// SDK in our <a
 /// href="https://firebase.google.com/docs/admob/cpp/migration-guide">migration
 /// guide</a>.
+///
+/// @brief Loads and displays AdMob interstitial ads.
 ///
 /// @ref InterstitialAd is a single-use object that can load and show a
 /// single AdMob interstitial ad.

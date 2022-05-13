@@ -29,15 +29,14 @@ namespace internal {
 class BannerViewInternal;
 }  // namespace internal
 
-/// @deprecated
-/// @brief Loads and displays AdMob banner ads.
-///
-/// The functionality in the <code>firebase::admob</code>
+/// @deprecated The functionality in the <code>firebase::admob</code>
 /// namespace has been replaced by the Google Mobile Ads SDK in the
 /// <code>firebase::gma</code> namespace. Learn how to transition to the new
 /// SDK in our <a
 /// href="https://firebase.google.com/docs/admob/cpp/migration-guide">migration
 /// guide</a>.
+///
+/// @brief Loads and displays AdMob banner ads.
 ///
 /// Each BannerView object corresponds to a single AdMob banner placement. There
 /// are methods to load an ad, move it, show it and hide it, and retrieve the

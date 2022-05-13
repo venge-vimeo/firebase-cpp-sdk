@@ -29,15 +29,14 @@ namespace internal {
 class NativeExpressAdViewInternal;
 }  // namespace internal
 
-/// @deprecated
-/// @brief Loads and displays ads from AdMob Native Ads Express.
-///
-/// The functionality in the <code>firebase::admob</code> namespace has
-/// been replaced by the Google Mobile Ads SDK in the
-/// <code>firebase::gma</code> namespace. Learn how to transition to the
-/// new SDK in our <a
+/// @deprecated The functionality in the <code>firebase::admob</code>
+/// namespace has been replaced by the Google Mobile Ads SDK in the
+/// <code>firebase::gma</code> namespace. Learn how to transition to the new
+/// SDK in our <a
 /// href="https://firebase.google.com/docs/admob/cpp/migration-guide">migration
 /// guide</a>.
+///
+/// @brief Loads and displays ads from AdMob Native Ads Express.
 ///
 /// Each NativeExpressAdView object corresponds to a single AdMob Native Express
 /// ad placement. There are methods to load an ad, move it, show it and hide it,
