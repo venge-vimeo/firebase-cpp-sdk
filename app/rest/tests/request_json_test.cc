@@ -70,5 +70,16 @@ TEST(RequestJsonTest, UpdatePostFields) {
       request.options().post_fields);
 }
 
+// Test with special characters.
+TEST(RequestJsonTest, UpdatePostFieldsQuote) {
+  RequestSample request;
+  request.set_token("It's not a problem.");
+  EXPECT_EQ(
+      "{\n"
+      "  token: \"It's not a problem.\"\n"
+      "}\n",
+      request.options().post_fields);
+}
+
 }  // namespace rest
 }  // namespace firebase
