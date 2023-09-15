@@ -805,6 +805,9 @@ void IdTokenRefreshThread::Initialize(AuthData* auth_data) {
       [](IdTokenRefreshThread* refresh_thread) {
         Auth* auth = refresh_thread->auth;
         while (!refresh_thread->is_shutting_down()) {
+          uint64_t ms_since_last_refresh =
+                internal::GetTimestampEpoch() -
+                refresh_thread->token_refresh_listener_.GetTokenTimestamp();
           // Note:  Make sure to always make future_impl.mutex the innermost
           // lock, to prevent deadlocks!
           refresh_thread->ref_count_mutex_.Acquire();
@@ -813,10 +816,6 @@ void IdTokenRefreshThread::Initialize(AuthData* auth_data) {
             // The internal identifier kInternalFn_GetTokenForRefresher,
             // ensures that we won't mess with the LastResult for the
             // user-facing one.
-
-            uint64_t ms_since_last_refresh =
-                internal::GetTimestampEpoch() -
-                refresh_thread->token_refresh_listener_.GetTokenTimestamp();
 
             if (ms_since_last_refresh >= kMsPerTokenRefresh) {
               Future<std::string> future =
